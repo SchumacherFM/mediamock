@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 func analyze(path, outfile string) {
@@ -87,12 +86,13 @@ func (w *walk) walkFn(path string, info os.FileInfo, err error) error {
 		//		log.Println(rel, ext)
 	}
 
-	return w.write(rel, info.ModTime(), imgWidth, imgHeight)
-}
-
-func (w *walk) write(path string, mod time.Time, width, height int) error {
-	_, err := fmt.Fprintf(w.outW, "%s%s%s%s%d%s%d%s", path, csvSep, mod, csvSep, width, csvSep, height, csvNewLine)
-	return err
+	r := record{
+		Path:    rel,
+		ModTime: info.ModTime(),
+		Width:   imgWidth,
+		Height:  imgHeight,
+	}
+	return r.Write(w.outW)
 }
 
 func getImageDimension(imagePath string) (int, int) {

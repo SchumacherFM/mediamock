@@ -7,14 +7,13 @@ import (
 	"flag"
 )
 
-const csvSep = "|"
-const csvNewLine = "\n"
 const fileName = "mediamock.csv.gz"
 
 var (
 	inFile  = flag.String("i", "", "")
 	dir     = flag.String("d", "", "")
 	outFile = flag.String("o", "", "")
+	pattern = flag.String("p", "happy", "")
 )
 
 var usage = `Usage: mediamock [options...] <url>
@@ -24,6 +23,7 @@ Options:
   -d  Read this directory recursivly and write into -o. If -i is provided
       generate all mocks in this directory. Default: current directory.
   -o  Write data into out file (optional, default a temp file).
+  -p  Image pattern: happy (default),warm,...
 `
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	if *inFile != "" {
-		mock(*inFile, *dir)
+		mock(*dir, *inFile)
 		return
 	}
 
@@ -51,8 +51,9 @@ func main() {
 
 func usageAndExit(message string, args ...interface{}) {
 	if message != "" {
+		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, message, args...)
-		fmt.Fprintf(os.Stderr, "\n\n")
+		fmt.Fprintf(os.Stderr, "\n")
 	}
 	flag.Usage()
 	fmt.Fprintf(os.Stderr, "\n")

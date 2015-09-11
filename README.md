@@ -24,7 +24,10 @@ date in a simple CSV file.
 The mock mode will read the CSV file and creates all the folders and
 files including correct modification date.
 For images it creates an empty image with the width and height.
-The image may contain nothing or a watermark or random generated structure
+
+The image contains an uniform color in a warm or happy tone.
+
+Todo: The image may contain nothing or a watermark or random generated structure
 or Chuck Norris jokes or cats.
 
 The mocked images should be as small as possible. All other non-image
