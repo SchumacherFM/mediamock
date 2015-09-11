@@ -15,23 +15,17 @@ and recreate the folder and files.
 
 ### Run mode: Analyze
 
-THe program will recursively walk through the folders and stores
-each file including path, image width & height and modification 
+The program will recursively walk through the folders and stores
+each file including path, image width + height and modification 
 date in a simple CSV file.
-
-The analyze mode will be triggered as soon as the program detects a 
-local folder.
 
 ### Run mode: Mock
 
 The mock mode will read the CSV file and creates all the folders and
-files including correct creation and modification date.
+files including correct modification date.
 For images it creates an empty image with the width and height.
 The image may contain nothing or a watermark or random generated structure
 or Chuck Norris jokes or cats.
-
-The mock mode will be triggered as soon as the program detects an 
-URL or local path with a .csv suffix.
 
 The mocked images should be as small as possible. All other non-image
 files are of size 0kb.
@@ -43,8 +37,9 @@ once connected to the server.
 
 ## Install
 
-Download binaries or `go get -u github.com/SchumacherFM/mediamock` or
-`go install github.com/SchumacherFM/mediamock`.
+Download binaries in the release section or 
+`go get -u github.com/SchumacherFM/mediamock` or
+`go install github.com/SchumacherFM/mediamock`
 
 ## License
 

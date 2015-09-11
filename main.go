@@ -1,47 +1,60 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"flag"
-	"log"
-	"strings"
 )
 
 const csvSep = "|"
 const csvNewLine = "\n"
+const fileName = "mediamock.csv.gz"
 
 var (
-	inFile  = flag.String("csv", "", "Read CSV data from this gzip file.")
-	readDir = flag.String("dir", "", "Read this directory recursivly and write into -o")
-	outFile = flag.String("o", "/tmp/mediamock.csv.gz", "Write to this file")
+	inFile  = flag.String("i", "", "")
+	dir     = flag.String("d", "", "")
+	outFile = flag.String("o", "", "")
 )
 
+var usage = `Usage: mediamock [options...] <url>
+
+Options:
+  -i  Read CSV data from this input URL/file.
+  -d  Read this directory recursivly and write into -o. If -i is provided
+      generate all mocks in this directory. Default: current directory.
+  -o  Write data into out file (optional, default a temp file).
+`
+
 func main() {
+	flag.Usage = func() {
+		fmt.Fprint(os.Stderr, usage)
+	}
 	flag.Parse()
 
-	if *inFile == "" && *readDir == "" {
-		flag.Usage()
-		os.Exit(0)
+	if flag.NFlag() < 1 {
+		usageAndExit("")
 	}
 
 	if *inFile != "" {
-		mock(*inFile)
+		mock(*inFile, *dir)
 		return
 	}
 
-	if _, err := os.Stat(*readDir); os.IsNotExist(err) {
-		log.Fatalf("No such file or directory: %s\n", *readDir)
+	if *outFile == "" {
+		*outFile = os.TempDir() + fileName
 	}
-	analyze(*readDir, *outFile)
+
+	analyze(*dir, *outFile)
 
 }
 
-func isDirectory(path string) bool {
-	fileInfo, err := os.Stat(path)
-	return fileInfo.IsDir() && err == nil
-}
-
-func isHTTP(path string) bool {
-	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
+func usageAndExit(message string, args ...interface{}) {
+	if message != "" {
+		fmt.Fprintf(os.Stderr, message, args...)
+		fmt.Fprintf(os.Stderr, "\n\n")
+	}
+	flag.Usage()
+	fmt.Fprintf(os.Stderr, "\n")
+	os.Exit(1)
 }

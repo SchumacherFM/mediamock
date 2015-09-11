@@ -8,7 +8,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,14 +15,18 @@ import (
 )
 
 func analyze(path, outfile string) {
-	if false == isDirectory(path) {
-		log.Fatalf("Expecting a directory: %s", path)
+	if _, err := os.Stat(*dir); os.IsNotExist(err) {
+		usageAndExit("No such file or directory: %s\n", *dir)
+	}
+
+	if false == isDir(path) {
+		usageAndExit("Expecting a directory: %s", path)
 	}
 
 	w := newWalk(path, outfile)
 	defer w.close()
 	if err := filepath.Walk(path, w.walkFn); err != nil {
-		log.Fatal("Walk Error: ", err)
+		usageAndExit("Walk Error: %s", err)
 	}
 	fmt.Fprintf(os.Stdout, "Wrote to file: %s\n", outfile)
 
@@ -44,7 +47,7 @@ func newWalk(path, outfile string) *walk {
 	var err error
 	w.outF, err = os.Create(outfile)
 	if err != nil {
-		log.Fatalf("Failed to open %s with error:", outfile, err)
+		usageAndExit("Failed to open %s with error: %s", outfile, err)
 	}
 	w.outW = gzip.NewWriter(w.outF)
 
@@ -59,6 +62,7 @@ func (w *walk) close() {
 		fmt.Fprintf(os.Stderr, "File close error: %s\n", err)
 	}
 }
+
 func (w *walk) getRelative(path string) string {
 	path = filepath.Clean(path)
 	parts := strings.Split(path, w.basePath)
@@ -101,13 +105,18 @@ func getImageDimension(imagePath string) (int, int) {
 
 	image, _, err := image.DecodeConfig(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Image decode: %s; error: %s\n", imagePath, err)
+		fmt.Fprintf(os.Stderr, "Image %s decoding error: %s\n", imagePath, err)
 		return 0, 0
 	}
 
 	if err := file.Close(); err != nil {
-		fmt.Fprintf(os.Stderr, "Close fail: %s: %s\n", imagePath, err)
+		fmt.Fprintf(os.Stderr, "Close error: %s: %s\n", imagePath, err)
 		return 0, 0
 	}
 	return image.Width, image.Height
+}
+
+func isDir(path string) bool {
+	fileInfo, err := os.Stat(path)
+	return fileInfo.IsDir() && err == nil
 }
