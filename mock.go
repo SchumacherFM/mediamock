@@ -7,7 +7,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -54,6 +56,14 @@ func mock(targetDir, csvFile string) {
 	rc := csv.NewReader(rz)
 	rc.Comma = ([]rune(csvSep))[0]
 
+	var recordChan = make(chan record)
+
+	var wg sync.WaitGroup
+	for i := 0; i < runtime.NumCPU(); i++ {
+		wg.Add(1)
+		go worker(&wg, i, recordChan, targetDir)
+	}
+
 	var i int
 	var t = time.Now()
 	for {
@@ -71,15 +81,30 @@ func mock(targetDir, csvFile string) {
 			fmt.Fprintf(os.Stderr, "%s\n", csvFile, err)
 		}
 
-		// this could be moved into go workers.
-		if err := rec.Create(targetDir); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to create file: %s\n", err)
-		}
+		recordChan <- rec
+
 		if i%100 == 0 && i > 0 {
-			fmt.Fprintf(os.Stdout, "%s: %d\n",  time.Now().Sub(t), i)
+			fmt.Fprintf(os.Stdout, "%6d => %s\n", i, time.Now().Sub(t))
 			t = time.Now()
 		}
 		i++
+	}
+	close(recordChan)
+	wg.Wait()
+	fmt.Fprintf(os.Stdout, "Created %d files\n", i+1)
+}
+
+func worker(wg *sync.WaitGroup, id int, rec <-chan record, targetDir string) {
+	defer wg.Done()
+	for { // or we could do for r := range rec { ... } what's better?
+		r, ok := <-rec
+		if !ok {
+			return
+		}
+		if err := r.Create(targetDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Worker %d: Failed to create file: %s\n", id, err)
+		}
+		// fmt.Printf("Worker %d => %s\n", id, r.Path)
 	}
 }
 

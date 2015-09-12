@@ -67,13 +67,23 @@ func (r record) Create(basePath string) error {
 		}
 	}()
 
+	if err := os.Chtimes(d+f, r.ModTime, r.ModTime); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to change time for file %s with error: %s\n", d+f, err)
+	}
+
 	switch filepath.Ext(f) {
 	case ".png":
-		png.Encode(file, r.generateImage())
+		if err := png.Encode(file, r.generateImage()); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create PNG file %s with error: %s\n", d+f, err)
+		}
 	case ".jpg", ".jpeg":
-		jpeg.Encode(file, r.generateImage(), &jpeg.Options{Quality: 1})
+		if err := jpeg.Encode(file, r.generateImage(), &jpeg.Options{Quality: 1}); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create JPEG file %s with error: %s\n", d+f, err)
+		}
 	case ".gif":
-		gif.Encode(file, r.generateImage(), nil)
+		if err := gif.Encode(file, r.generateImage(), nil); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create GIF file %s with error: %s\n", d+f, err)
+		}
 	default:
 		if _, err := file.Write(nil); err != nil {
 			return err
