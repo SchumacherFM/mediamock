@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/cheggaaa/pb"
 )
 
 const dirPerm os.FileMode = 0755
@@ -36,62 +38,31 @@ func mock(targetDir, csvFile string) {
 		usageAndExit("Expecting a directory: %s", targetDir)
 	}
 
-	r := getCSVContent(csvFile)
-	defer func() {
-		if err := r.Close(); err != nil {
-			usageAndExit("Failed to close file %s with error: %s", csvFile, err)
-		}
-	}()
+	records := getCSVContent(csvFile)
 
-	rz, err := gzip.NewReader(r)
-	if err != nil {
-		usageAndExit("Failed to create a GZIP reader from file %s with error: %s", csvFile, err)
-	}
-	defer func() {
-		if err := rz.Close(); err != nil {
-			usageAndExit("Failed to close file %s with error: %s", csvFile, err)
-		}
-	}()
-
-	rc := csv.NewReader(rz)
-	rc.Comma = ([]rune(csvSep))[0]
-
+	var count = len(records)
 	var recordChan = make(chan record)
-
 	var wg sync.WaitGroup
 	for i := 0; i < runtime.NumCPU(); i++ {
 		wg.Add(1)
 		go worker(&wg, i, recordChan, targetDir)
 	}
 
-	var i int
 	var t = time.Now()
-	for {
+	var bar = initPB(count)
 
-		raw, err := rc.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to read a record CSV data from file %s with error: %s\n", csvFile, err)
-		}
-
-		rec, err := newRecord(raw...)
+	for _, row := range records {
+		rec, err := newRecord(row...)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", csvFile, err)
 		}
-
 		recordChan <- rec
-
-		if i%100 == 0 && i > 0 {
-			fmt.Fprintf(os.Stdout, "%6d => %s\n", i, time.Now().Sub(t))
-			t = time.Now()
-		}
-		i++
+		bar.Increment()
 	}
 	close(recordChan)
 	wg.Wait()
-	fmt.Fprintf(os.Stdout, "Created %d files\n", i+1)
+	bar.Finish()
+	fmt.Fprintf(os.Stdout, "Duration: %s\n", time.Now().Sub(t))
 }
 
 func worker(wg *sync.WaitGroup, id int, rec <-chan record, targetDir string) {
@@ -108,22 +79,60 @@ func worker(wg *sync.WaitGroup, id int, rec <-chan record, targetDir string) {
 	}
 }
 
-func getCSVContent(csvFile string) io.ReadCloser {
+func getCSVContent(csvFile string) [][]string {
+	var rawRC io.ReadCloser
 	if isHTTP(csvFile) {
 		resp, err := http.Get(csvFile)
 		if err != nil {
 			usageAndExit("Failed to download %s with error: %s", csvFile, err)
 		}
-		return resp.Body
+		if resp.StatusCode != http.StatusOK {
+			usageAndExit("Server return non-200 status code: %s\nFailed to download %s", resp.Status, csvFile)
+		}
+		rawRC = resp.Body
+	} else {
+		var err error
+		rawRC, err = os.Open(csvFile)
+		if err != nil {
+			usageAndExit("Failed to open %s with error:%s", csvFile, err)
+		}
+	}
+	defer func() {
+		if err := rawRC.Close(); err != nil {
+			usageAndExit("Failed to close URL/file %s with error: %s", csvFile, err)
+		}
+	}()
+
+	rz, err := gzip.NewReader(rawRC)
+	if err != nil {
+		usageAndExit("Failed to create a GZIP reader from file %s with error: %s", csvFile, err)
+	}
+	defer func() {
+		if err := rz.Close(); err != nil {
+			usageAndExit("Failed to close file %s with error: %s", csvFile, err)
+		}
+	}()
+
+	rc := csv.NewReader(rz)
+	rc.Comma = ([]rune(csvSep))[0]
+
+	records, err := rc.ReadAll()
+	if err != nil {
+		usageAndExit("Failed to read CSV file %s with error: %s", csvFile, err)
 	}
 
-	fc, err := os.Open(csvFile)
-	if err != nil {
-		usageAndExit("Failed to open %s with error:%s", csvFile, err)
-	}
-	return fc
+	return records
 }
 
 func isHTTP(path string) bool {
 	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
+}
+
+func initPB(count int) *pb.ProgressBar {
+	bar := pb.New(count)
+	bar.ShowPercent = true
+	bar.ShowBar = true
+	bar.ShowCounters = true
+	bar.ShowTimeLeft = true
+	return bar.Start()
 }

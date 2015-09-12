@@ -77,6 +77,7 @@ func (r record) Create(basePath string) error {
 			fmt.Fprintf(os.Stderr, "Failed to create PNG file %s with error: %s\n", d+f, err)
 		}
 	case ".jpg", ".jpeg":
+		// big file size? reason why is here: https://www.reddit.com/r/golang/comments/3kn1zp/filesize_of_jpegencode/
 		if err := jpeg.Encode(file, r.generateImage(), &jpeg.Options{Quality: 1}); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to create JPEG file %s with error: %s\n", d+f, err)
 		}
@@ -105,8 +106,6 @@ func (r record) generateImage() image.Image {
 	default:
 		src = &image.Uniform{colorful.FastWarmColor()}
 	}
-
-	//	colorful.FastHappyColor()
 
 	draw.Draw(img, img.Bounds(), src, image.ZP, draw.Src)
 	return img
