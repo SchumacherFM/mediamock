@@ -17,11 +17,11 @@ var (
 	pattern = flag.String("p", "happy", "")
 )
 
-var usage = `Usage: mediamock [options...] <url>
+var usage = `Usage: mediamock options...
 
 Options:
   -i  Read CSV data from this input URL/file.
-  -d  Read this directory recursivly and write into -o. If -i is provided
+  -d  Read this directory recursively and write into -o. If -i is provided
       generate all mocks in this directory. Default: current directory.
   -o  Write data into out file (optional, default a temp file).
   -p  Image pattern: happy (default), warm or rand
