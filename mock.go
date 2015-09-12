@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cheggaaa/pb"
+	"github.com/rakyll/pb"
 )
 
 const dirPerm os.FileMode = 0755
@@ -50,6 +50,7 @@ func mock(targetDir, csvFile string) {
 
 	var t = time.Now()
 	var bar = initPB(count)
+	bar.Start()
 
 	for _, row := range records {
 		rec, err := newRecord(row...)
@@ -63,6 +64,7 @@ func mock(targetDir, csvFile string) {
 	wg.Wait()
 	bar.Finish()
 	fmt.Fprintf(os.Stdout, "Duration: %s\n", time.Now().Sub(t))
+	fmt.Fprintf(os.Stdout, "You may run: find %s -type f -name \"*.jpg\" -exec jpegoptim {} + \n",targetDir)
 }
 
 func worker(wg *sync.WaitGroup, id int, rec <-chan record, targetDir string) {
@@ -134,5 +136,5 @@ func initPB(count int) *pb.ProgressBar {
 	bar.ShowBar = true
 	bar.ShowCounters = true
 	bar.ShowTimeLeft = true
-	return bar.Start()
+	return bar
 }

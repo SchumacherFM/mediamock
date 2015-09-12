@@ -81,7 +81,7 @@ Directory pathToMyDevFolder created
 
 ## Install
 
-Download binaries in the release section or 
+Download binaries for windows, linux and darwin in the [release section](https://github.com/SchumacherFM/mediamock/releases) or 
 `go get -u github.com/SchumacherFM/mediamock` or
 `go install github.com/SchumacherFM/mediamock`
 
