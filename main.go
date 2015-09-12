@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-
 	"flag"
+
+	"github.com/mgutz/ansi"
 )
 
 const fileName = "mediamock.csv.gz"
@@ -23,7 +24,7 @@ Options:
   -d  Read this directory recursivly and write into -o. If -i is provided
       generate all mocks in this directory. Default: current directory.
   -o  Write data into out file (optional, default a temp file).
-  -p  Image pattern: happy (default),warm,...
+  -p  Image pattern: happy (default), warm or rand
 `
 
 func main() {
@@ -52,10 +53,14 @@ func main() {
 func usageAndExit(message string, args ...interface{}) {
 	if message != "" {
 		fmt.Fprintf(os.Stderr, "\n")
-		fmt.Fprintf(os.Stderr, message, args...)
+		fmt.Fprintf(os.Stderr, ansi.Color(message, "red"), args...)
 		fmt.Fprintf(os.Stderr, "\n")
 	}
 	flag.Usage()
 	fmt.Fprintf(os.Stderr, "\n")
 	os.Exit(1)
+}
+
+func infoErr(msg string, args ...interface{}) (int, error) {
+	return fmt.Fprintf(os.Stderr, ansi.Color(msg, "magenta"), args...)
 }

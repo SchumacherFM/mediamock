@@ -55,10 +55,10 @@ func newWalk(path, outfile string) *walk {
 
 func (w *walk) close() {
 	if err := w.outW.Close(); err != nil {
-		fmt.Fprintf(os.Stderr, "GZIP close error: %s\n", err)
+		infoErr("GZIP close error: %s\n", err)
 	}
 	if err := w.outF.Close(); err != nil {
-		fmt.Fprintf(os.Stderr, "File close error: %s\n", err)
+		infoErr("File close error: %s\n", err)
 	}
 }
 
@@ -98,19 +98,19 @@ func (w *walk) walkFn(path string, info os.FileInfo, err error) error {
 func getImageDimension(imagePath string) (int, int) {
 	file, err := os.Open(imagePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot open image: %s\n", err)
+		infoErr("Cannot open image: %s\n", err)
 		return 0, 0
 
 	}
 
 	image, _, err := image.DecodeConfig(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Image %s decoding error: %s\n", imagePath, err)
+		infoErr("Image %s decoding error: %s\n", imagePath, err)
 		return 0, 0
 	}
 
 	if err := file.Close(); err != nil {
-		fmt.Fprintf(os.Stderr, "Close error: %s: %s\n", imagePath, err)
+		infoErr("Close error: %s: %s\n", imagePath, err)
 		return 0, 0
 	}
 	return image.Width, image.Height

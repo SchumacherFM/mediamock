@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -63,27 +64,27 @@ func (r record) Create(basePath string) error {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to close file %s with error: %s\n", d+f, err)
+			infoErr("Failed to close file %s with error: %s\n", d+f, err)
 		}
 	}()
 
 	if err := os.Chtimes(d+f, r.ModTime, r.ModTime); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to change time for file %s with error: %s\n", d+f, err)
+		infoErr("Failed to change time for file %s with error: %s\n", d+f, err)
 	}
 
 	switch filepath.Ext(f) {
 	case ".png":
 		if err := png.Encode(file, r.generateImage()); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to create PNG file %s with error: %s\n", d+f, err)
+			infoErr("Failed to create PNG file %s with error: %s\n", d+f, err)
 		}
 	case ".jpg", ".jpeg":
 		// big file size? reason why is here: https://www.reddit.com/r/golang/comments/3kn1zp/filesize_of_jpegencode/
 		if err := jpeg.Encode(file, r.generateImage(), &jpeg.Options{Quality: 1}); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to create JPEG file %s with error: %s\n", d+f, err)
+			infoErr("Failed to create JPEG file %s with error: %s\n", d+f, err)
 		}
 	case ".gif":
 		if err := gif.Encode(file, r.generateImage(), nil); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to create GIF file %s with error: %s\n", d+f, err)
+			infoErr("Failed to create GIF file %s with error: %s\n", d+f, err)
 		}
 	default:
 		if _, err := file.Write(nil); err != nil {
@@ -103,6 +104,8 @@ func (r record) generateImage() image.Image {
 		src = &image.Uniform{colorful.WarmColor()}
 	case "happy":
 		src = &image.Uniform{colorful.HappyColor()}
+	case "rand":
+		src = &image.Uniform{colorful.Hcl(rand.Float64(), rand.Float64(), rand.Float64())}
 	default:
 		src = &image.Uniform{colorful.FastWarmColor()}
 	}

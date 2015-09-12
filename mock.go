@@ -54,7 +54,7 @@ func mock(targetDir, csvFile string) {
 	for _, row := range records {
 		rec, err := newRecord(row...)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", csvFile, err)
+			infoErr("%s\n", csvFile, err)
 		}
 		recordChan <- rec
 		bar.Increment()
@@ -73,7 +73,7 @@ func worker(wg *sync.WaitGroup, id int, rec <-chan record, targetDir string) {
 			return
 		}
 		if err := r.Create(targetDir); err != nil {
-			fmt.Fprintf(os.Stderr, "Worker %d: Failed to create file: %s\n", id, err)
+			infoErr("Worker %d: Failed to create file: %s\n", id, err)
 		}
 		// fmt.Printf("Worker %d => %s\n", id, r.Path)
 	}
