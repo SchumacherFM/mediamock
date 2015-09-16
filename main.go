@@ -1,9 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"flag"
 
 	"github.com/mgutz/ansi"
 )
@@ -24,7 +24,7 @@ Options:
   -d  Read this directory recursively and write into -o. If -i is provided
       generate all mocks in this directory. Default: current directory.
   -o  Write data into out file (optional, default a temp file).
-  -p  Image pattern: happy (default), warm or rand
+  -p  Image pattern: happy (default), warm, rand or HTML hex value
 `
 
 func main() {

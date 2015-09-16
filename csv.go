@@ -99,13 +99,16 @@ func (r record) generateImage() image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, r.Width, r.Height))
 
 	var src image.Image
-	switch *pattern {
-	case "warm":
+	switch {
+	case "warm" == *pattern:
 		src = &image.Uniform{colorful.WarmColor()}
-	case "happy":
+	case "happy" == *pattern:
 		src = &image.Uniform{colorful.HappyColor()}
-	case "rand":
-		src = &image.Uniform{colorful.Hcl(rand.Float64(), rand.Float64(), rand.Float64())}
+	case "rand" == *pattern:
+		src = &image.Uniform{colorful.LinearRgb(rand.Float64(), rand.Float64(), rand.Float64())}
+	case isHex(*pattern):
+		hc, _ := colorful.Hex(*pattern)
+		src = &image.Uniform{hc}
 	default:
 		src = &image.Uniform{colorful.FastWarmColor()}
 	}
@@ -118,7 +121,11 @@ func (r record) getDirFile(base string) (dir, file string) {
 	if false == strings.HasSuffix(base, ps) && false == strings.HasPrefix(r.Path, ps) {
 		base = base + ps
 	}
-
 	dir, file = filepath.Split(base + r.Path)
 	return
+}
+
+func isHex(s string) bool {
+	_, err := colorful.Hex(s)
+	return err == nil
 }

@@ -64,7 +64,7 @@ func mock(targetDir, csvFile string) {
 	wg.Wait()
 	bar.Finish()
 	fmt.Fprintf(os.Stdout, "Duration: %s\n", time.Now().Sub(t))
-	fmt.Fprintf(os.Stdout, "You may run: find %s -type f -name \"*.jpg\" -exec jpegoptim {} + \n",targetDir)
+	fmt.Fprintf(os.Stdout, "You may run: find %s -type f -name \"*.jpg\" -exec jpegoptim {} + \n", targetDir)
 }
 
 func worker(wg *sync.WaitGroup, id int, rec <-chan record, targetDir string) {
