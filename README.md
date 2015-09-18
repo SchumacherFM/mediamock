@@ -38,6 +38,43 @@ files are of size 0kb.
 
 Same as Mock, but generates the images on-the-fly.
 
+## How to use server mode with my Online Store or CMS?
+
+### Magento
+
+If you want Magento to use the mediamock server you must change in the backend
+the media URLs.
+
+```
+UPDATE `core_config_data` SET `value` = 'http://localhost:4711/media/' 
+WHERE `path` LIKE '%media_url%' AND `value` xlike '%media%';
+```
+
+Where `localhost:4711` is the URL to the mediamock server.
+There is a typo in the above SQL to protect you :-).
+
+![configMagento](/configMagento.png)
+
+### TYPO3
+
+Please help
+
+### Drupal
+
+Please help
+
+### Hybris
+
+Please help
+
+### Shopware
+
+Please help
+
+### OXID
+
+Please help
+
 ## Command line
 
 ```
