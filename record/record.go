@@ -16,8 +16,12 @@ import (
 	"time"
 
 	"github.com/SchumacherFM/mediamock/common"
+	"github.com/llgcode/draw2d"
+	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/lucasb-eyer/go-colorful"
 	"github.com/ugorji/go/codec"
+
+	"github.com/golang/freetype/truetype"
 )
 
 const DirPerm os.FileMode = 0755
@@ -33,8 +37,9 @@ type Record struct {
 	Width   int       // idx 2
 	Height  int       // idx 3
 
-	pattern string
-	ext     string
+	pattern       string
+	allowDrawText bool
+	ext           string
 }
 
 func NewRecord(pattern string, csv ...string) (Record, error) {
@@ -46,24 +51,35 @@ func NewRecord(pattern string, csv ...string) (Record, error) {
 	h, _ := strconv.Atoi(csv[3])
 	t, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", csv[1])
 
+	isText := strings.Contains(pattern, "text")
+	if isText {
+		pattern = strings.Replace(pattern, "text", "", -1)
+	}
+
 	return Record{
-		Path:    csv[0],
-		ModTime: t,
-		Width:   w,
-		Height:  h,
-		pattern: pattern,
-		ext:     filepath.Ext(csv[0]),
+		Path:          csv[0],
+		ModTime:       t,
+		Width:         w,
+		Height:        h,
+		pattern:       pattern,
+		allowDrawText: isText,
+		ext:           filepath.Ext(csv[0]),
 	}, nil
 }
 
 func NewRecordFields(pattern, path string, width, height int) Record {
+	isText := strings.Contains(pattern, "text")
+	if isText {
+		pattern = strings.Replace(pattern, "text", "", -1)
+	}
 	return Record{
-		Path:    path,
-		ModTime: time.Now(),
-		Width:   width,
-		Height:  height,
-		pattern: pattern,
-		ext:     filepath.Ext(path),
+		Path:          path,
+		ModTime:       time.Now(),
+		Width:         width,
+		Height:        height,
+		pattern:       pattern,
+		allowDrawText: isText,
+		ext:           filepath.Ext(path),
 	}
 }
 
@@ -114,7 +130,7 @@ func (r Record) CreateContent(f string, w io.Writer) {
 		}
 	case ".jpg", ".jpeg":
 		// big file size? reason why is here: https://www.reddit.com/r/golang/comments/3kn1zp/filesize_of_jpegencode/
-		if err := jpeg.Encode(w, r.generateImage(), &jpeg.Options{Quality: 1}); err != nil {
+		if err := jpeg.Encode(w, r.generateImage(), &jpeg.Options{Quality: 75}); err != nil {
 			common.InfoErr("Failed to create JPEG file %s with error: %s\n", f, err)
 		}
 	case ".gif", ".ico":
@@ -145,8 +161,13 @@ func (r Record) generateImage() image.Image {
 	default:
 		src = &image.Uniform{colorful.FastWarmColor()}
 	}
-
 	draw.Draw(img, img.Bounds(), src, image.ZP, draw.Src)
+
+	if r.allowDrawText {
+		_, f := r.getDirFile(r.Path)
+		gc := draw2dimg.NewGraphicContext(img)
+		drawText(gc, f, 2, float64(r.Height))
+	}
 	return img
 }
 
@@ -161,4 +182,36 @@ func (r Record) getDirFile(base string) (dir, file string) {
 func (r Record) isHex() bool {
 	_, err := colorful.Hex(r.pattern)
 	return err == nil
+}
+
+func init() {
+	luximrTTF, err := truetype.Parse(luximr)
+	if err != nil {
+		common.UsageAndExit("failed to parse luximir font: %s", err)
+	}
+	luximr = nil // kill 72Kb of font data
+
+	draw2d.RegisterFont(
+		draw2d.FontData{Name: "luxi", Family: draw2d.FontFamilyMono, Style: draw2d.FontStyleNormal},
+		luximrTTF,
+	)
+}
+
+func drawText(gc draw2d.GraphicContext, text string, x, y float64) {
+	var fontSize float64 = 14
+	fontSizeHeight := fontSize + 14
+	if y < fontSizeHeight {
+		return
+	}
+	gc.SetFontData(draw2d.FontData{Name: "luxi", Family: draw2d.FontFamilyMono, Style: draw2d.FontStyleNormal})
+	// Set the fill text color to black
+
+	gc.SetFillColor(image.Black)
+	gc.SetFontSize(fontSize)
+	// 9px width each letter and 2px letter spacing at font-size 14
+
+	var yPos float64
+	for ; yPos < y; yPos = yPos + fontSizeHeight {
+		gc.FillStringAt(text, x, yPos)
+	}
 }
