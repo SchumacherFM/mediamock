@@ -66,9 +66,14 @@ COMMANDS:
    help, h	Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
+   -p "happy"		Image pattern: happy, warm, rand, happytext, warmtext or HTML hex value
    --help, -h		show help
    --version, -v	print the version
 ```
+
+If the option `p` contains the word `text` like h`appytext` or `warmtext` then the image file name
+will be printed all over the generate image. This is useful if you need to inspect a zooming
+effect on the frontend.
 
 ### Run analyze
 
@@ -115,9 +120,8 @@ USAGE:
    command mock [command options] [arguments...]
 
 OPTIONS:
-   -i 		    Read csv.gz from this input file or input URL.
-   -d "."	    Create structure in this directory.
-   -p "happy"	Image pattern: happy, warm, rand or HTML hex value
+   -i 		Read csv.gz from this input file or input URL.
+   -d "."	Create structure in this directory.
 ```
 
 ```
@@ -139,10 +143,9 @@ USAGE:
    command server [command options] [arguments...]
 
 OPTIONS:
-   --urlPrefix 			Prefix in the URL path
-   -i 				Read csv.gz from this input file or input URL.
-   --host "localhost:4711"	IP address or host name
-   -p "happy"			Image pattern: happy, warm, rand or HTML hex value
+   --urlPrefix 		       Prefix in the URL path
+   -i 				       Read csv.gz from this input file or input URL.
+   --host "localhost:4711" IP address or host name
 ```
 
 ```

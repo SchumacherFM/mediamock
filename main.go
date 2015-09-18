@@ -9,7 +9,7 @@ import (
 const fileName = "mediamock.csv.gz"
 
 var (
-	Version = "v0.1.0"
+	Version = "v0.2.0"
 )
 
 func main() {
