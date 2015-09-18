@@ -156,6 +156,13 @@ you can navigate to: `http://localhost:4711/debug/charts/`.
 
 You can retrieve a list of all served files by navigating to `http://localhost:4711`.
 
+If an image doesn't exists in the CSV file but is requested from the front end
+mediamock will try to generated an appropriate image if it can detect width and height
+information within the URL.
+
+E.g.: `http://localhost:4711/media/catalog/product/cache/2/small_image/218x258/9df78eab33525d08d6e5fb8d27136e95/detail/myImage.jpg`
+mediamock can detect that this image is 218px x 258px in size because URL mentions 218x258.
+
 ## Install
 
 Download binaries for windows, linux and darwin in the [release section](https://github.com/SchumacherFM/mediamock/releases) or 
