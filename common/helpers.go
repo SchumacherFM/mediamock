@@ -24,8 +24,10 @@ func UsageAndExit(message string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func InfoErr(msg string, args ...interface{}) (int, error) {
-	return fmt.Fprintf(os.Stderr, ansi.Color(msg, "magenta"), args...)
+func InfoErr(msg string, args ...interface{}) {
+	if _, err := fmt.Fprintf(os.Stderr, ansi.Color(msg, "magenta"), args...); err != nil {
+		panic(err)
+	}
 }
 
 var fileSizePattern = regexp.MustCompile("([0-9]+)x([0-9]+)")

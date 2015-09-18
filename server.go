@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"sync"
 	"time"
-	_ "net/http/pprof"
-	_ "github.com/mkevac/debugcharts"
+
 	"github.com/SchumacherFM/mediamock/common"
 	"github.com/SchumacherFM/mediamock/record"
 	"github.com/codegangsta/cli"
+	_ "github.com/mkevac/debugcharts"
 )
 
 const (
@@ -38,7 +39,9 @@ func actionServer(ctx *cli.Context) {
 	fmt.Fprintf(os.Stdout, "Found %d entries in the CSV file\n", h.length)
 	fmt.Fprintf(os.Stdout, "Server started: %s\n", ctx.String("host"))
 	http.HandleFunc("/", h.handler)
-	http.ListenAndServe(ctx.String("host"), nil)
+	if err := http.ListenAndServe(ctx.String("host"), nil); err != nil {
+		panic(err)
+	}
 }
 
 type handle struct {
@@ -78,8 +81,12 @@ func (h *handle) root(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(ContentType, ApplicationJSONCharsetUTF8)
 	h.RLock()
 	for _, rec := range h.fileMap {
-		rec.ToJSON(w)
-		w.Write(brByte)
+		if err := rec.ToJSON(w); err != nil {
+			common.InfoErr("Failed to write JSON with error: %s\n", err)
+		}
+		if _, err := w.Write(brByte); err != nil {
+			common.InfoErr("Failed to write JSON with error: %s\n", err)
+		}
 	}
 	h.RUnlock()
 }
