@@ -26,6 +26,14 @@ func main() {
 		cli.ShowAppHelp(c)
 	}
 
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "p",
+			Value: "happy",
+			Usage: "Image pattern: happy, warm, rand, happytext, warmtext or HTML hex value",
+		},
+	}
+
 	app.Commands = []cli.Command{
 		{
 			Name:      "analyze",
@@ -63,11 +71,6 @@ func main() {
 					Value: ".",
 					Usage: "Create structure in this directory.",
 				},
-				cli.StringFlag{
-					Name:  "p",
-					Value: "happy",
-					Usage: "Image pattern: happy, warm, rand or HTML hex value",
-				},
 			},
 		},
 		{
@@ -92,11 +95,6 @@ func main() {
 					Name:  "host",
 					Value: "localhost:4711",
 					Usage: "IP address or host name",
-				},
-				cli.StringFlag{
-					Name:  "p",
-					Value: "happy",
-					Usage: "Image pattern: happy, warm, rand or HTML hex value",
 				},
 			},
 		},

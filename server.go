@@ -58,7 +58,7 @@ func newHandle(ctx *cli.Context) *handle {
 
 	h := &handle{
 		fileMap: make(map[string]record.Record),
-		pattern: ctx.String("p"),
+		pattern: ctx.GlobalString("p"),
 	}
 	h.Lock()
 	defer h.Unlock()
