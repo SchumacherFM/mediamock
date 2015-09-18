@@ -1,6 +1,6 @@
 {
   "ConfigVersion": "0.9",
-  "PackageVersion": "0.0.2",
+  "PackageVersion": "0.1.0",
   "Arch": "386 amd64",
   "Os": "linux darwin windows"
 }

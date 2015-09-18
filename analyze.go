@@ -11,21 +11,26 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/SchumacherFM/mediamock/common"
+	"github.com/SchumacherFM/mediamock/record"
+	"github.com/codegangsta/cli"
 )
 
-func analyze(path, outfile string) {
-	if _, err := os.Stat(*dir); os.IsNotExist(err) {
-		usageAndExit("No such file or directory: %s\n", *dir)
-	}
+func actionAnalyze(ctx *cli.Context) {
+
+	var path, outfile string
+	path = ctx.String("d")
+	outfile = ctx.String("o")
 
 	if false == isDir(path) {
-		usageAndExit("Expecting a directory: %s", path)
+		common.UsageAndExit("Expecting an existing directory: %s", path)
 	}
 
 	w := newWalk(path, outfile)
 	defer w.close()
 	if err := filepath.Walk(path, w.walkFn); err != nil {
-		usageAndExit("Walk Error: %s", err)
+		common.UsageAndExit("Walk Error: %s", err)
 	}
 	fmt.Fprintf(os.Stdout, "Wrote to file: %s\n", outfile)
 
@@ -46,7 +51,7 @@ func newWalk(path, outfile string) *walk {
 	var err error
 	w.outF, err = os.Create(outfile)
 	if err != nil {
-		usageAndExit("Failed to open %s with error: %s", outfile, err)
+		common.UsageAndExit("Failed to open %s with error: %s", outfile, err)
 	}
 	w.outW = gzip.NewWriter(w.outF)
 
@@ -55,10 +60,10 @@ func newWalk(path, outfile string) *walk {
 
 func (w *walk) close() {
 	if err := w.outW.Close(); err != nil {
-		infoErr("GZIP close error: %s\n", err)
+		common.InfoErr("GZIP close error: %s\n", err)
 	}
 	if err := w.outF.Close(); err != nil {
-		infoErr("File close error: %s\n", err)
+		common.InfoErr("File close error: %s\n", err)
 	}
 }
 
@@ -86,7 +91,7 @@ func (w *walk) walkFn(path string, info os.FileInfo, err error) error {
 		//		log.Println(rel, ext)
 	}
 
-	r := record{
+	r := record.Record{
 		Path:    rel,
 		ModTime: info.ModTime(),
 		Width:   imgWidth,
@@ -98,19 +103,19 @@ func (w *walk) walkFn(path string, info os.FileInfo, err error) error {
 func getImageDimension(imagePath string) (int, int) {
 	file, err := os.Open(imagePath)
 	if err != nil {
-		infoErr("Cannot open image: %s\n", err)
+		common.InfoErr("Cannot open image: %s\n", err)
 		return 0, 0
 
 	}
 
 	image, _, err := image.DecodeConfig(file)
 	if err != nil {
-		infoErr("Image %s decoding error: %s\n", imagePath, err)
+		common.InfoErr("Image %s decoding error: %s\n", imagePath, err)
 		return 0, 0
 	}
 
 	if err := file.Close(); err != nil {
-		infoErr("Close error: %s: %s\n", imagePath, err)
+		common.InfoErr("Close error: %s: %s\n", imagePath, err)
 		return 0, 0
 	}
 	return image.Width, image.Height

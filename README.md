@@ -34,30 +34,62 @@ Supported image formats: png, jpeg and gif.
 The mocked images should be as small as possible. All other non-image
 files are of size 0kb.
 
-## Future TODOs
+### Run mode: Server
 
-Run as server and allow clients to trigger the analyze steop
-once connected to the server.
+Same as Mock, but generates the images on-the-fly.
 
 ## Command line
 
 ```
-Usage: mediamock options...
+$ ./mediamock
+NAME:
+   mediamock - reads your assets/media directory on your server and
+               replicates that structure on your development machine.
 
-Options:
-  -i  Read CSV data from this input URL/file.
-  -d  Read this directory recursively and write into -o. If -i is provided
-      generate all mocks in this directory. Default: current directory.
-  -o  Write data into out file (optional, default a temp file).
-  -p  Image pattern: happy (default), warm or rand
+               $ mediamock help analyze|mock|server for more options!
+
+
+USAGE:
+   mediamock [global options] command [command options] [arguments...]
+
+VERSION:
+   v0.1.0 by @SchumacherFM
+
+COMMANDS:
+   analyze, a	Analyze the directory structure on you production server and write into a
+		csv.gz file.
+   mock, m	Mock reads the csv.gz file and recreates the files and folders. If a file represents
+		an image, it will be created with a tiny file size and correct width x height.
+   server, s	Server reads the csv.gz file and creates the assets/media structure on the fly
+		as a HTTP server. Does not write anything to your hard disk. Open URL / on the server
+		to retrieve a list of all files and folders.
+   help, h	Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h		show help
+   --version, -v	print the version
 ```
 
 ### Run analyze
 
+```
+$ ./mediamock help a
+NAME:
+   analyze - Analyze the directory structure on you production server and write into a
+	csv.gz file.
+
+USAGE:
+   command analyze [command options] [arguments...]
+
+OPTIONS:
+   -d "."						Read this directory recursively and write into -o
+   -o "/tmp/mediamock.csv.gz"	Write to this output file.
+```
+
 The following is an example output:
 
 ```
-$ ./mediamock -d ~/Sites/magento19-data/media
+$ ./mediamock analyze -d ~/Sites/magento19-data/media
 Image ~/Sites/magento19-data/media/catalog/product/6/4/64406_66803218048_1831204_n.jpg decoding error: image: unknown format
 Image ~/Sites/magento19-data/media/catalog/product/6/4/64406_66803218048_1813204_n_1.jpg decoding error: image: unknown format
 Image ~/Sites/magento19-data/media/catalog/product/i/m/IMG_1658_4.png decoding error: image: unknown format
@@ -74,10 +106,55 @@ it from there on the command line.
 ### Run mock
 
 ```
-$ ./mediamock -d pathToMyDevFolder -i https://www.onlineshop.com.au/mediamock.csv.gz -p warm
+$ ./mediamock help m
+NAME:
+   mock - Mock reads the csv.gz file and recreates the files and folders. If a file represents
+	an image, it will be created with a tiny file size and correct width x height.
+
+USAGE:
+   command mock [command options] [arguments...]
+
+OPTIONS:
+   -i 		    Read csv.gz from this input file or input URL.
+   -d "."	    Create structure in this directory.
+   -p "happy"	Image pattern: happy, warm, rand or HTML hex value
+```
+
+```
+$ ./mediamock m -d pathToMyDevFolder -i https://www.onlineshop.com.au/mediamock.csv.gz -p warm
 Directory pathToMyDevFolder created
 241 / 9957 [=====>------------------------------------------------------------------] 2.42 % 9m32s
 ```
+
+### Run server
+
+```
+$ ./mediamock help s
+NAME:
+   server - Server reads the csv.gz file and creates the assets/media structure on the fly
+	as a HTTP server. Does not write anything to your hard disk. Open URL / on the server
+	to retrieve a list of all files and folders.
+
+USAGE:
+   command server [command options] [arguments...]
+
+OPTIONS:
+   --urlPrefix 			Prefix in the URL path
+   -i 				Read csv.gz from this input file or input URL.
+   --host "localhost:4711"	IP address or host name
+   -p "happy"			Image pattern: happy, warm, rand or HTML hex value
+```
+
+```
+$ mediamock s -i /tmp/mediamock.csv.gz -urlPrefix media/
+```
+
+Once the server is running and you want some stats about memory usage and garbage collection,
+you can navigate to: `http://localhost:4711/debug/charts/`.
+
+![ScreenShot](/debugCharts.png)
+
+You can retrieve a list of all served files by navigating to `http://localhost:4711`.
 
 ## Install
 
