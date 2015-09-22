@@ -1,6 +1,7 @@
 package record
 
 import (
+	"crypto/md5"
 	"fmt"
 	"image"
 	"image/draw"
@@ -20,7 +21,6 @@ import (
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/lucasb-eyer/go-colorful"
 	"github.com/ugorji/go/codec"
-
 	"github.com/golang/freetype/truetype"
 )
 
@@ -149,6 +149,23 @@ func (r Record) generateImage() image.Image {
 
 	var src image.Image
 	switch {
+	case "icon" == r.pattern:
+		var key []byte
+		key = strconv.AppendInt(key, int64(r.Width), 10)
+		key = strconv.AppendInt(key, int64(r.Height), 10)
+		key16 := md5.Sum(key)
+		size := r.Width
+		if size > r.Height {
+			size = r.Height
+		}
+		sqSize := int(size / 8)
+		borderX := int((r.Width - (sqSize * 7)) / 2)
+		borderY := int((r.Height - (sqSize * 7)) / 2)
+
+		icon := New7x7Size(sqSize, r.Width, r.Height, borderX, borderY, key16[:])
+		data := []byte(r.Path)
+		src = icon.Render(data)
+
 	case "warm" == r.pattern:
 		src = &image.Uniform{colorful.WarmColor()}
 	case "happy" == r.pattern:

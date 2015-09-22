@@ -30,7 +30,7 @@ func main() {
 		cli.StringFlag{
 			Name:  "p",
 			Value: "happy",
-			Usage: "Image pattern: happy, warm, rand, happytext, warmtext or HTML hex value",
+			Usage: "Image pattern: happy, warm, rand, happytext, warmtext HTML hex value or icon",
 		},
 	}
 

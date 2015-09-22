@@ -214,3 +214,5 @@ Download binaries for windows, linux and darwin in the [release section](https:/
 Copyright (c) 2015 Cyrill (at) Schumacher dot fm. All rights reserved.
 
 [Cyrill Schumacher](https://github.com/SchumacherFM) - [My pgp public key](http://www.schumacher.fm/cyrill.asc)
+
+Identicon code by: Copyright (c) 2013, Damian Gryski <damian@gryski.com>
