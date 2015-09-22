@@ -103,7 +103,7 @@ COMMANDS:
    help, h	Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   -p "happy"		Image pattern: happy, warm, rand, happytext, warmtext or HTML hex value
+   -p "happy"		Image pattern: happy, warm, rand, happytext, warmtext, HTML hex value or icon
    --help, -h		show help
    --version, -v	print the version
 ```
@@ -111,6 +111,9 @@ GLOBAL OPTIONS:
 If the option `p` contains the word `text` like h`appytext` or `warmtext` then the image file name
 will be printed all over the generate image. This is useful if you need to inspect a zooming
 effect on the frontend.
+
+Pattern *icon* generates identicons like introduced here [https://github.com/blog/1586-identicons](https://github.com/blog/1586-identicons).
+The pattern will be generated from the file name.
 
 ### Run analyze
 
