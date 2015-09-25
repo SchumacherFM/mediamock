@@ -17,11 +17,11 @@ import (
 	"time"
 
 	"github.com/SchumacherFM/mediamock/common"
+	"github.com/golang/freetype/truetype"
 	"github.com/llgcode/draw2d"
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/lucasb-eyer/go-colorful"
 	"github.com/ugorji/go/codec"
-	"github.com/golang/freetype/truetype"
 )
 
 const DirPerm os.FileMode = 0755
@@ -56,6 +56,11 @@ func NewRecord(pattern string, csv ...string) (Record, error) {
 		pattern = strings.Replace(pattern, "text", "", -1)
 	}
 
+	if w == 0 && h == 0 {
+		w = 10
+		h = 10
+	}
+
 	return Record{
 		Path:          csv[0],
 		ModTime:       t,
@@ -71,6 +76,10 @@ func NewRecordFields(pattern, path string, width, height int) Record {
 	isText := strings.Contains(pattern, "text")
 	if isText {
 		pattern = strings.Replace(pattern, "text", "", -1)
+	}
+	if width == 0 && height == 0 {
+		width = 10
+		height = 10
 	}
 	return Record{
 		Path:          path,
@@ -145,7 +154,9 @@ func (r Record) CreateContent(f string, w io.Writer) {
 }
 
 func (r Record) generateImage() image.Image {
+
 	img := image.NewRGBA(image.Rect(0, 0, r.Width, r.Height))
+	_, fileName := r.getDirFile(r.Path)
 
 	var src image.Image
 	switch {
@@ -163,7 +174,7 @@ func (r Record) generateImage() image.Image {
 		borderY := int((r.Height - (sqSize * 7)) / 2)
 
 		icon := New7x7Size(sqSize, r.Width, r.Height, borderX, borderY, key16[:])
-		data := []byte(r.Path)
+		data := []byte(fileName)
 		src = icon.Render(data)
 
 	case "warm" == r.pattern:
@@ -181,9 +192,8 @@ func (r Record) generateImage() image.Image {
 	draw.Draw(img, img.Bounds(), src, image.ZP, draw.Src)
 
 	if r.allowDrawText {
-		_, f := r.getDirFile(r.Path)
 		gc := draw2dimg.NewGraphicContext(img)
-		drawText(gc, f, 2, float64(r.Height))
+		drawText(gc, fileName, 2, float64(r.Height))
 	}
 	return img
 }

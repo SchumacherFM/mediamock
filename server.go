@@ -5,6 +5,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -76,8 +77,19 @@ func newHandle(ctx *cli.Context) *handle {
 	return h
 }
 
-// root generates a JSON stream of all files
 func (h *handle) root(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set(ContentType, TextHTMLCharsetUTF8)
+	fmt.Fprint(w, `<html>
+	<head><title>Mediamock Index</title></head>
+	<body>
+		<a href="/json">JSON Index</a><br>
+		<a href="/html">HTML Index</a><br>
+		<a href="/debug/charts/">Debug Charts</a><br>
+	</body>
+	</html>`)
+}
+
+func (h *handle) rootJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(ContentType, ApplicationJSONCharsetUTF8)
 	h.RLock()
 	for _, rec := range h.fileMap {
@@ -91,11 +103,93 @@ func (h *handle) root(w http.ResponseWriter, r *http.Request) {
 	h.RUnlock()
 }
 
+func (h *handle) rootHTML(w http.ResponseWriter, r *http.Request) {
+	h.RLock()
+	defer h.RUnlock()
+	w.Header().Set(ContentType, TextHTMLCharsetUTF8)
+	fmt.Fprint(w, `<html>	<head><title>Mediamock Content Table</title></head>	<body><table>`)
+	fmt.Fprint(w, `<thead><tr>
+			<th>ModTime</th>
+			<th nowrap>Width px</th>
+			<th nowrap>Height px</th>
+			<th>Link</th>
+	</tr></thead><tbody>`)
+
+	var pathSlice = make(sort.StringSlice, len(h.fileMap))
+	var i int
+	for key, _ := range h.fileMap {
+		pathSlice[i] = key
+		i++
+	}
+	pathSlice.Sort()
+
+	for _, key := range pathSlice {
+		rec := h.fileMap[key]
+
+		_, err := fmt.Fprintf(w, `<tr>
+			<td>%s</td>
+			<td>%d</td>
+			<td>%d</td>
+			<td><a href="/%s" target="_blank">%s</a></td>
+		</tr>`,
+			rec.ModTime,
+			rec.Width,
+			rec.Height,
+			rec.Path, rec.Path,
+		)
+		if err != nil {
+			common.InfoErr("Failed to write HTML table with error: %s\n", err)
+		}
+
+		if _, err := w.Write(brByte); err != nil {
+			common.InfoErr("Failed to write brByte with error: %s\n", err)
+		}
+
+	}
+
+	fmt.Fprint(w, `</tbody></table></body>	</html>`)
+}
+
+// post or get request
+// $ curl --data "file=media/catalog/product/1/2/120---microsoft-natural-ergonomic-keyboard-4000.jpg" http://127.0.0.1:4711/fileDetails
+// and returns:
+// {"Path":"media/catalog/product/1/2/120---microsoft-natural-ergonomic-keyboard-4000.jpg","ModTime":"2014-02-16T03:27:45+01:00","Width":5184,"Height":3456}
+func (h *handle) fileDetails(w http.ResponseWriter, r *http.Request) {
+	filePath := r.FormValue("file")
+	if filePath == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	h.RLock()
+	defer h.RUnlock()
+
+	rec, ok := h.fileMap[filePath]
+	if !ok {
+		common.InfoErr("%s not found in CSV file\n", filePath)
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set(ContentType, ApplicationJSONCharsetUTF8)
+	if err := rec.ToJSON(w); err != nil {
+		common.InfoErr("Failed to write JSON with error: %s\n", err)
+	}
+}
+
 func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.URL.Path {
 	case "/":
 		h.root(w, r)
+		return
+	case "/json":
+		h.rootJSON(w, r)
+		return
+	case "/html":
+		h.rootHTML(w, r)
+		return
+	case "/fileDetails":
+		h.fileDetails(w, r)
 		return
 	case "/robots.txt":
 		w.Header().Set("Content-Type", "text/plain")

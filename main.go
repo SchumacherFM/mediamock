@@ -93,7 +93,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "host",
-					Value: "localhost:4711",
+					Value: "127.0.0.1:4711",
 					Usage: "IP address or host name",
 				},
 			},
