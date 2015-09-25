@@ -42,18 +42,9 @@ Same as Mock, but generates the images on-the-fly.
 
 ### Magento
 
-If you want Magento to use the mediamock server you must change in the backend
-the media URLs.
+Please install [https://github.com/SchumacherFM/mediamock-magento](https://github.com/SchumacherFM/mediamock-magento).
 
-```
-UPDATE `core_config_data` SET `value` = 'http://localhost:4711/media/' 
-WHERE `path` LIKE '%media_url%' AND `value` xlike '%media%';
-```
-
-Where `localhost:4711` is the URL to the mediamock server.
-There is a typo in the above SQL to protect you :-).
-
-![configMagento](/configMagento.png)
+This module disables HDD file access in Magento.
 
 ### TYPO3
 
@@ -185,25 +176,29 @@ USAGE:
 OPTIONS:
    --urlPrefix 		       Prefix in the URL path
    -i 				       Read csv.gz from this input file or input URL.
-   --host "localhost:4711" IP address or host name
+   --host "127.0.0.1:4711" IP address or host name
 ```
 
 ```
 $ mediamock s -i /tmp/mediamock.csv.gz -urlPrefix media/
 ```
 
-Once the server is running and you want some stats about memory usage and garbage collection,
-you can navigate to: `http://localhost:4711/debug/charts/`.
+For detailed statistic about the running mediamock server internals you can visit:
+
+- `http://localhost:4711/` Tiny directory index
+- `http://localhost:4711/debug/charts/` Garbage Collection and Memory Usage statistics
+- `http://localhost:4711/json` all files as a JSON stream
+- `http://localhost:4711/html` all files as a HTML table
 
 ![ScreenShot](/debugCharts.png)
 
-You can retrieve a list of all served files by navigating to `http://localhost:4711`.
+You can retrieve a list of all served files by navigating to `http://127.0.0.1:4711`.
 
 If an image doesn't exists in the CSV file but is requested from the front end
 mediamock will try to generated an appropriate image if it can detect width and height
 information within the URL.
 
-E.g.: `http://localhost:4711/media/catalog/product/cache/2/small_image/218x258/9df78eab33525d08d6e5fb8d27136e95/detail/myImage.jpg`
+E.g.: `http://127.0.0.1:4711/media/catalog/product/cache/2/small_image/218x258/9df78eab33525d08d6e5fb8d27136e95/detail/myImage.jpg`
 mediamock can detect that this image is 218px x 258px in size because URL mentions 218x258.
 
 ## Install

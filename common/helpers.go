@@ -30,13 +30,16 @@ func InfoErr(msg string, args ...interface{}) {
 	}
 }
 
-var fileSizePattern = regexp.MustCompile("([0-9]+)x([0-9]+)")
+var fileSizePattern = regexp.MustCompile("([0-9]+)x([0-9]+)?")
 
 func FileSizeFromPath(path string) (width, height int) {
 	m := fileSizePattern.FindStringSubmatch(path)
 	if len(m) == 3 {
 		width, _ = strconv.Atoi(m[1])
 		height, _ = strconv.Atoi(m[2])
+	}
+	if height == 0 {
+		height = width
 	}
 	return
 }

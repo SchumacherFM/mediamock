@@ -210,10 +210,13 @@ func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		width, height := common.FileSizeFromPath(path)
+
 		if width > 0 && height > 0 {
 			rec = record.NewRecordFields(h.pattern, path, width, height)
+		} else {
+			http.NotFound(w, r)
+			return
 		}
-
 	}
 
 	w.Header().Set("Cache-Control", "max-age:290304000, public")
