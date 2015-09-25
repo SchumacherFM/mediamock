@@ -203,9 +203,41 @@ mediamock can detect that this image is 218px x 258px in size because URL mentio
 
 ## Install
 
-Download binaries for windows, linux and darwin in the [release section](https://github.com/SchumacherFM/mediamock/releases) or 
-`go get -u github.com/SchumacherFM/mediamock` or
-`go install github.com/SchumacherFM/mediamock`
+Download binaries for windows, linux and darwin in the [release section](https://github.com/SchumacherFM/mediamock/releases).
+
+## Contribute
+
+`GO15VENDOREXPERIMENT` introduces reproduceable builds. 
+
+```
+$ go get -u -v github.com/SchumacherFM/mediamock/...
+$ cd $GOPATH/src/github.com/SchumacherFM/mediamock
+$ git remote rm origin
+$ git remote add origin git@github.com:username/CloneOfMediaMock.git
+$ git submodule init
+$ git submodule update
+hack hack hack ...
+$ GO15VENDOREXPERIMENT=1 go run *.go
+hack hack hack ...
+$ GO15VENDOREXPERIMENT=1 go run *.go
+$ gofmt -w *.go common/*.go record/*.go
+$ git commit -a -m 'Add feature X including tests'
+$ git push -u origin master
+create pull request to github.com/SchumacherFM/mediamock
+```
+
+If you introduce a new dependency this is how to add it:
+
+```
+$ cd $GOPATH/src/github.com/SchumacherFM/mediamock
+$ git submodule add git@github.com:username/GoLangRep.git vendor/github.com/username/GoLangRep
+```
+
+How do I know all dependencies?
+
+```
+$ go list -json github.com/SchumacherFM/mediamock/...
+```
 
 ## License
 
