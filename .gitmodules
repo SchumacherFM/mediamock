@@ -34,3 +34,21 @@
 [submodule "vendor/golang.org/x/image"]
 	path = vendor/golang.org/x/image
 	url = https://github.com/golang/image.git
+[submodule "vendor/github.com/go-gl/gl"]
+	path = vendor/github.com/go-gl/gl
+	url = https://github.com/go-gl/gl.git
+[submodule "vendor/github.com/jung-kurt/gofpdf"]
+	path = vendor/github.com/jung-kurt/gofpdf
+	url = https://github.com/jung-kurt/gofpdf.git
+[submodule "vendor/github.com/llgcode/ps"]
+	path = vendor/github.com/llgcode/ps
+	url = https://github.com/llgcode/ps.git
+[submodule "vendor/github.com/gorilla/handlers"]
+	path = vendor/github.com/gorilla/handlers
+	url = https://github.com/gorilla/handlers.git
+[submodule "vendor/github.com/boombuler/barcode"]
+	path = vendor/github.com/boombuler/barcode
+	url = https://github.com/boombuler/barcode.git
+[submodule "vendor/github.com/go-gl/glfw"]
+	path = vendor/github.com/go-gl/glfw
+	url = https://github.com/go-gl/glfw.git
