@@ -78,7 +78,7 @@ func (w *walk) getRelative(path string) string {
 
 func (w *walk) walkFn(path string, info os.FileInfo, err error) error {
 	rel := w.getRelative(path)
-	if rel == "" || info.IsDir() {
+	if rel == "" || info.IsDir() || rel[0] == "." {
 		return nil
 	}
 
