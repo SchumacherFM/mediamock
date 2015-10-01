@@ -78,8 +78,16 @@ func (w *walk) getRelative(path string) string {
 
 func (w *walk) walkFn(path string, info os.FileInfo, err error) error {
 	rel := w.getRelative(path)
-	if rel == "" || info.IsDir() || rel[0] == "." {
+
+	if rel == "" || info.IsDir() {
 		return nil
+	}
+
+	if len(rel) >= 5 {
+		switch rel[1:5] { // trim first slash
+		case ".svn", ".git":
+			return nil
+		}
 	}
 
 	var imgWidth, imgHeight int
