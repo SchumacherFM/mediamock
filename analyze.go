@@ -83,11 +83,8 @@ func (w *walk) walkFn(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 
-	if len(rel) >= 5 {
-		switch rel[1:5] { // trim first slash
-		case ".svn", ".git":
-			return nil
-		}
+	if common.ContainsFolderName(rel, ".svn", ".git") {
+		return nil
 	}
 
 	var imgWidth, imgHeight int

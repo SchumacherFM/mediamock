@@ -3,12 +3,10 @@ package common
 import (
 	"fmt"
 	"os"
-
 	"regexp"
-
 	"strconv"
-
 	"path/filepath"
+	"strings"
 
 	"github.com/mgutz/ansi"
 )
@@ -42,6 +40,17 @@ func FileSizeFromPath(path string) (width, height int) {
 		height = width
 	}
 	return
+}
+
+var ps = string(os.PathSeparator)
+
+func ContainsFolderName(path string, names ...string) bool {
+	for _, n := range names {
+		if strings.Contains(path, ps+n+ps) {
+			return true
+		}
+	}
+	return false
 }
 
 func IsImage(path string) (ok bool) {
