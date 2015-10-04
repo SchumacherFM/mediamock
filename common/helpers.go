@@ -44,17 +44,20 @@ func FileSizeFromPath(path string) (width, height int) {
 
 var ps = string(os.PathSeparator)
 
+// ContainsFolderName checks if path contains a name. A name will be prepended
+// with an OS specific path separator, e.g.: .svn becomes /.svn
 func ContainsFolderName(path string, names ...string) bool {
 	for _, n := range names {
-		if strings.Contains(path, ps+n+ps) {
+		if strings.Contains(path, ps+n) {
 			return true
 		}
 	}
 	return false
 }
 
+// IsImage checks if path to a file is an image by extracting the file extension
+// and checking it against an internal list.
 func IsImage(path string) (ok bool) {
-
 	switch filepath.Ext(path) {
 	case ".png", ".gif", ".jpg", ".jpeg", ".ico":
 		ok = true
