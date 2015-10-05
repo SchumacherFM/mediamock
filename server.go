@@ -130,7 +130,7 @@ func (h *handle) rootHTML(w http.ResponseWriter, r *http.Request) {
 			<td>%s</td>
 			<td>%d</td>
 			<td>%d</td>
-			<td><a href="/%s" target="_blank">%s</a></td>
+			<td><a href="%s" target="_blank">%s</a></td>
 		</tr>`,
 			rec.ModTime,
 			rec.Width,
@@ -201,7 +201,12 @@ func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 	defer h.RUnlock()
 
 	var path = r.URL.Path[1:]
+
 	rec, ok := h.fileMap[path]
+	if !ok && len(path) > 0 && path[0] != '/' {
+		rec, ok = h.fileMap["/"+path]
+	}
+
 	if !ok {
 
 		if false == common.IsImage(path) {
