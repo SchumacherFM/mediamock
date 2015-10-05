@@ -3,9 +3,9 @@ package common
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
-	"path/filepath"
 	"strings"
 
 	"github.com/mgutz/ansi"

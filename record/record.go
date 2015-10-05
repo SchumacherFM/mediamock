@@ -31,6 +31,22 @@ const ps = string(os.PathSeparator)
 
 var codecJSON codec.Handle = new(codec.JsonHandle)
 
+var sipHashKey [16]byte
+
+func init() {
+	// reason for this: if an image with the same name will be served
+	// in different sizes then the displayed pattern will be the same
+	// but the color changes with each start of mediamock.
+	// This feature makes it possible for the human to recognize a resized image.
+	var key []byte
+	rand.Seed(time.Now().Unix())
+	a := rand.Int63n(2000)
+	key = strconv.AppendInt(key, a, 10)
+	b := rand.Int63n(2000)
+	key = strconv.AppendInt(key, b, 10)
+	sipHashKey = md5.Sum(key)
+}
+
 type Record struct {
 	Path    string    // idx 0
 	ModTime time.Time // idx 1
@@ -161,10 +177,6 @@ func (r Record) generateImage() image.Image {
 	var src image.Image
 	switch {
 	case "icon" == r.pattern:
-		var key []byte
-		key = strconv.AppendInt(key, int64(r.Width), 10)
-		key = strconv.AppendInt(key, int64(r.Height), 10)
-		key16 := md5.Sum(key)
 		size := r.Width
 		if size > r.Height {
 			size = r.Height
@@ -173,7 +185,7 @@ func (r Record) generateImage() image.Image {
 		borderX := int((r.Width - (sqSize * 7)) / 2)
 		borderY := int((r.Height - (sqSize * 7)) / 2)
 
-		icon := New7x7Size(sqSize, r.Width, r.Height, borderX, borderY, key16[:])
+		icon := New7x7Size(sqSize, r.Width, r.Height, borderX, borderY, sipHashKey[:])
 		data := []byte(fileName)
 		src = icon.Render(data)
 
