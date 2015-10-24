@@ -43,7 +43,9 @@ type walk struct {
 }
 
 func newWalk(path, outfile string) *walk {
-
+	if path == "." {
+		path = ""
+	}
 	w := &walk{
 		basePath: path,
 	}
@@ -69,7 +71,11 @@ func (w *walk) close() {
 
 func (w *walk) getRelative(path string) string {
 	path = filepath.Clean(path)
+	if w.basePath == "" {
+		return path
+	}
 	parts := strings.Split(path, w.basePath)
+
 	if len(parts) < 2 {
 		return ""
 	}
