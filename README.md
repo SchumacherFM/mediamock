@@ -201,6 +201,10 @@ information within the URL.
 E.g.: `http://127.0.0.1:4711/media/catalog/product/cache/2/small_image/218x258/9df78eab33525d08d6e5fb8d27136e95/detail/myImage.jpg`
 mediamock can detect that this image is 218px x 258px in size because URL mentions 218x258.
 
+## TODO
+
+- Use concurrent file walk: [https://github.com/MichaelTJones/walk](https://github.com/MichaelTJones/walk)
+
 ## Install
 
 Download binaries for windows, linux and darwin in the [release section](https://github.com/SchumacherFM/mediamock/releases).
