@@ -33,6 +33,7 @@ type handle struct {
 	fileMap map[string]record.Record
 	sync.RWMutex
 	length  int
+	// pattern is the name and type of the image pattern
 	pattern string
 }
 

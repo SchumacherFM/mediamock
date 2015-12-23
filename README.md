@@ -81,7 +81,7 @@ USAGE:
    mediamock [global options] command [command options] [arguments...]
 
 VERSION:
-   v0.1.0 by @SchumacherFM
+   vx.x.x by @SchumacherFM
 
 COMMANDS:
    analyze, a	Analyze the directory structure on you production server and write into a
@@ -126,6 +126,7 @@ The following is an example output:
 
 ```
 $ ./mediamock analyze -d ~/Sites/magento19-data/media
+8187 / 8187 [=========================================================================================] 100.00 %
 Image ~/Sites/magento19-data/media/catalog/product/6/4/64406_66803218048_1831204_n.jpg decoding error: image: unknown format
 Image ~/Sites/magento19-data/media/catalog/product/6/4/64406_66803218048_1813204_n_1.jpg decoding error: image: unknown format
 Image ~/Sites/magento19-data/media/catalog/product/i/m/IMG_1658_4.png decoding error: image: unknown format
