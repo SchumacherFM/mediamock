@@ -52,3 +52,6 @@
 [submodule "vendor/github.com/go-gl/glfw"]
 	path = vendor/github.com/go-gl/glfw
 	url = https://github.com/go-gl/glfw.git
+[submodule "vendor/github.com/MichaelTJones/walk"]
+	path = vendor/github.com/MichaelTJones/walk
+	url = git@github.com:MichaelTJones/walk.git
