@@ -30,6 +30,7 @@ func InfoErr(msg string, args ...interface{}) {
 }
 
 var fileSizePattern = regexp.MustCompile("([0-9]+)x([0-9]+)?")
+var ps = string(os.PathSeparator)
 
 func FileSizeFromPath(path string) (width, height int) {
 	m := fileSizePattern.FindStringSubmatch(path)
@@ -43,7 +44,14 @@ func FileSizeFromPath(path string) (width, height int) {
 	return
 }
 
-var ps = string(os.PathSeparator)
+// TempDir returns temporary directory ending with a path separatoe
+func TempDir() string {
+	dir := os.TempDir()
+	if len(dir) > 0 && dir[len(dir)-1:] != ps {
+		dir = dir + ps
+	}
+	return dir
+}
 
 var excludedFolders = []string{".svn", ".git"}
 

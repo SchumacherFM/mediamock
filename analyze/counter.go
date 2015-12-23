@@ -12,26 +12,28 @@ import (
 )
 
 type walkCount struct {
+	basePath string
+
 	mu        sync.Mutex
-	dirCount  int64
-	fileCount int64
+	fileCount int
+}
+
+func newWalkCount(path string) *walkCount {
+	return &walkCount{
+		basePath: path,
+	}
 }
 
 func (w *walkCount) walkFn(path string, info os.FileInfo, err error) error {
+	rel := getRelative(w.basePath, path)
 
-	if common.ContainsFolderName(info.Name()) {
+	if rel == "" || info.IsDir() || common.ContainsFolderName(rel) {
 		return nil
 	}
 
 	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	if info.IsDir() {
-		w.dirCount++
-		return nil
-	}
-
 	w.fileCount++
+	w.mu.Unlock()
 
 	return nil
 }

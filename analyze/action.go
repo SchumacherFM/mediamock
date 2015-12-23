@@ -1,10 +1,12 @@
 package analyze
 
 import (
-	"fmt"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+
+	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/MichaelTJones/walk"
@@ -22,11 +24,24 @@ func ActionCLI(ctx *cli.Context) {
 		common.UsageAndExit("Expecting an existing directory: %s", path)
 	}
 
-	w := newTraverse(path, outfile)
+	var cliWriter io.Writer
+	cliWriter = os.Stdout
+	if ctx.GlobalBool("q") {
+		cliWriter = ioutil.Discard
+	}
+
+	wc := newWalkCount(path)
+	if err := walk.Walk(path, wc.walkFn); err != nil {
+		common.UsageAndExit("Walk Counter Error: %s", err)
+	}
+
+	if path == "." {
+		path = ""
+	}
+
+	w := newTraverse(cliWriter, path, outfile, wc.fileCount)
 	defer w.close()
 	if err := walk.Walk(path, w.walkFn); err != nil {
 		common.UsageAndExit("Walk Error: %s", err)
 	}
-	fmt.Fprintf(os.Stdout, "Wrote to file: %s\n", outfile)
-
 }

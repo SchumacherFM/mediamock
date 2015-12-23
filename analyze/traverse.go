@@ -2,31 +2,41 @@ package analyze
 
 import (
 	"compress/gzip"
+	"fmt"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/SchumacherFM/mediamock/common"
 	"github.com/SchumacherFM/mediamock/record"
+	"github.com/rakyll/pb"
 )
 
 type traverse struct {
-	basePath string
-	outF     io.WriteCloser
-	outW     io.WriteCloser
+	cliWriter  io.Writer
+	outfile    string
+	basePath   string
+	outF       io.WriteCloser
+	outW       io.WriteCloser
+	bar        *pb.ProgressBar
+	workerRec  chan record.Record
+	workerStop chan struct{}
 }
 
-func newTraverse(path, outfile string) *traverse {
-	if path == "." {
-		path = ""
-	}
+func newTraverse(cliWriter io.Writer, path, outfile string, barMaxCount int) *traverse {
 	w := &traverse{
-		basePath: path,
+		cliWriter:  cliWriter,
+		outfile:    outfile,
+		basePath:   path,
+		workerRec:  make(chan record.Record),
+		workerStop: make(chan struct{}),
+		bar:        common.InitPB(barMaxCount),
 	}
 
 	var err error
@@ -35,34 +45,50 @@ func newTraverse(path, outfile string) *traverse {
 		common.UsageAndExit("Failed to open %s with error: %s", outfile, err)
 	}
 	w.outW = gzip.NewWriter(w.outF)
-
+	// using w.bar.Output with a io.Writer causes some funny print outs.
+	w.bar.NotPrint = w.cliWriter == ioutil.Discard
+	w.bar.Start()
+	go w.workerWriter()
 	return w
 }
 
+func (w *traverse) workerWriter() {
+	for {
+		select {
+		case rec, ok := <-w.workerRec:
+			if !ok {
+				return
+			}
+
+			if err := rec.Write(w.outW); err != nil {
+				fmt.Fprintf(w.cliWriter, "Error when writing to file %s: %s\n", w.outfile, err)
+			}
+
+			w.bar.Increment()
+		case <-w.workerStop:
+			return
+		}
+	}
+}
+
 func (w *traverse) close() {
+
+	w.workerStop <- struct{}{}
+	close(w.workerRec)
+
 	if err := w.outW.Close(); err != nil {
 		common.InfoErr("GZIP close error: %s\n", err)
 	}
 	if err := w.outF.Close(); err != nil {
 		common.InfoErr("File close error: %s\n", err)
 	}
-}
 
-func (w *traverse) getRelative(path string) string {
-	path = filepath.Clean(path)
-	if w.basePath == "" {
-		return path
-	}
-	parts := strings.Split(path, w.basePath)
-
-	if len(parts) < 2 {
-		return ""
-	}
-	return parts[1]
+	w.bar.Finish()
+	fmt.Fprintf(w.cliWriter, "Wrote to file: %s\n", w.outfile)
 }
 
 func (w *traverse) walkFn(path string, info os.FileInfo, err error) error {
-	rel := w.getRelative(path)
+	rel := getRelative(w.basePath, path)
 
 	if rel == "" || info.IsDir() {
 		return nil
@@ -81,13 +107,26 @@ func (w *traverse) walkFn(path string, info os.FileInfo, err error) error {
 		//		log.Println(rel, ext)
 	}
 
-	r := record.Record{
+	w.workerRec <- record.Record{
 		Path:    rel,
 		ModTime: info.ModTime(),
 		Width:   imgWidth,
 		Height:  imgHeight,
 	}
-	return r.Write(w.outW)
+	return nil
+}
+
+func getRelative(basePath, path string) string {
+	path = filepath.Clean(path)
+	if basePath == "" {
+		return path
+	}
+	parts := strings.Split(path, basePath)
+
+	if len(parts) < 2 {
+		return ""
+	}
+	return parts[1]
 }
 
 func getImageDimension(imagePath string) (int, int) {

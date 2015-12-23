@@ -4,15 +4,21 @@ import (
 	"os"
 
 	"github.com/SchumacherFM/mediamock/analyze"
+	"github.com/SchumacherFM/mediamock/common"
 	"github.com/SchumacherFM/mediamock/mock"
 	"github.com/SchumacherFM/mediamock/server"
 	"github.com/codegangsta/cli"
 )
 
-const fileName = "mediamock.csv.gz"
-
 var (
-	Version = "v0.3.0"
+	Version  = "v0.4.0"
+	fileName = func() (fn string) {
+		var err error
+		if fn, err = os.Hostname(); err == nil {
+			fn = fn + "_"
+		}
+		return fn + "mediamock.csv.gz"
+	}()
 )
 
 func main() {
@@ -35,6 +41,10 @@ func main() {
 			Value: "happy",
 			Usage: "Image pattern: happy, warm, rand, happytext, warmtext HTML hex value or icon",
 		},
+		cli.BoolFlag{
+			Name:  "q",
+			Usage: "Quiet aka no output",
+		},
 	}
 
 	app.Commands = []cli.Command{
@@ -42,7 +52,7 @@ func main() {
 			Name:      "analyze",
 			ShortName: "a",
 			Usage: `Analyze the directory structure on you production server and write into a
-	csv.gz file.`,
+		csv.gz file.`,
 			Action: analyze.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -52,7 +62,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "o",
-					Value: os.TempDir() + fileName,
+					Value: common.TempDir() + fileName,
 					Usage: "Write to this output file.",
 				},
 			},
