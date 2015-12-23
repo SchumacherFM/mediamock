@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mgutz/ansi"
+	"github.com/rakyll/pb"
 )
 
 func UsageAndExit(message string, args ...interface{}) {
@@ -44,9 +45,12 @@ func FileSizeFromPath(path string) (width, height int) {
 
 var ps = string(os.PathSeparator)
 
+var excludedFolders = []string{".svn", ".git"}
+
 // ContainsFolderName checks if path contains a name. A name will be prepended
 // with an OS specific path separator, e.g.: .svn becomes /.svn
 func ContainsFolderName(path string, names ...string) bool {
+	names = append(names, excludedFolders...)
 	for _, n := range names {
 		if strings.Contains(path, ps+n) {
 			return true
@@ -63,4 +67,25 @@ func IsImage(path string) (ok bool) {
 		ok = true
 	}
 	return
+}
+
+// IsDir returns true if path is a directory
+func IsDir(path string) bool {
+	fileInfo, err := os.Stat(path)
+	return fileInfo.IsDir() && err == nil
+}
+
+// IsHTTP checks if path starts with http or https
+func IsHTTP(path string) bool {
+	return strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://")
+}
+
+// InitPB initializes a progress bar for the terminal
+func InitPB(count int) *pb.ProgressBar {
+	bar := pb.New(count)
+	bar.ShowPercent = true
+	bar.ShowBar = true
+	bar.ShowCounters = true
+	bar.ShowTimeLeft = true
+	return bar
 }

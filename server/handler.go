@@ -1,13 +1,11 @@
-package main
+package server
 
 import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
 	"sort"
 	"sync"
-	"time"
 
 	"github.com/SchumacherFM/mediamock/common"
 	"github.com/SchumacherFM/mediamock/record"
@@ -30,21 +28,6 @@ const (
 	TextPlainCharsetUTF8 = TextPlain + "; " + CharsetUTF8
 )
 
-var (
-	brByte     = []byte("\n")
-	cacheUntil = time.Now().AddDate(60, 0, 0).Format(http.TimeFormat)
-)
-
-func actionServer(ctx *cli.Context) {
-	h := newHandle(ctx)
-	fmt.Fprintf(os.Stdout, "Found %d entries in the CSV file\n", h.length)
-	fmt.Fprintf(os.Stdout, "Server started: %s\n", ctx.String("host"))
-	http.HandleFunc("/", h.handler)
-	if err := http.ListenAndServe(ctx.String("host"), nil); err != nil {
-		panic(err)
-	}
-}
-
 type handle struct {
 	// fileMap contains sometimes up to 200k entries
 	fileMap map[string]record.Record
@@ -55,7 +38,7 @@ type handle struct {
 
 func newHandle(ctx *cli.Context) *handle {
 	csvFile := ctx.String("i")
-	rec := getCSVContent(csvFile)
+	rec := record.GetCSVContent(csvFile)
 
 	h := &handle{
 		fileMap: make(map[string]record.Record),

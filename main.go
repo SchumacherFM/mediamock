@@ -3,6 +3,9 @@ package main
 import (
 	"os"
 
+	"github.com/SchumacherFM/mediamock/analyze"
+	"github.com/SchumacherFM/mediamock/mock"
+	"github.com/SchumacherFM/mediamock/server"
 	"github.com/codegangsta/cli"
 )
 
@@ -40,7 +43,7 @@ func main() {
 			ShortName: "a",
 			Usage: `Analyze the directory structure on you production server and write into a
 	csv.gz file.`,
-			Action: actionAnalyze,
+			Action: analyze.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "d",
@@ -59,7 +62,7 @@ func main() {
 			ShortName: "m",
 			Usage: `Mock reads the csv.gz file and recreates the files and folders. If a file represents
 	an image, it will be created with a tiny file size and correct width x height.`,
-			Action: actionMock,
+			Action: mock.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "i",
@@ -79,7 +82,7 @@ func main() {
 			Usage: `Server reads the csv.gz file and creates the assets/media structure on the fly
 	as a HTTP server. Does not write anything to your hard disk. Open URL / on the server
 	to retrieve a list of all files and folders.`,
-			Action: actionServer,
+			Action: server.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "urlPrefix",
