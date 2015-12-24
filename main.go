@@ -95,6 +95,11 @@ func main() {
 			Action: server.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
+					Name:  "imgconfig",
+					Value: "",
+					Usage: "Path to the configuration file for virtual image generation. `<app> help imgconfig` for more info.",
+				},
+				cli.StringFlag{
 					Name:  "urlPrefix",
 					Value: "",
 					Usage: "Prefix in the URL path",
@@ -108,6 +113,15 @@ func main() {
 					Name:  "host",
 					Value: "127.0.0.1:4711",
 					Usage: "IP address or host name",
+				},
+			},
+			{
+				Name: "imgconfig",
+				Usage: `Server reads the csv.gz file and creates the assets/media structure on the fly
+	as a HTTP server. Does not write anything to your hard disk. Open URL / on the server
+	to retrieve a list of all files and folders.`,
+				Action: func(ctx *cli.Context) {
+					println("Bummer ... nothing to see here.")
 				},
 			},
 		},

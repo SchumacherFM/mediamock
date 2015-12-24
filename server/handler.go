@@ -32,7 +32,7 @@ type handle struct {
 	// fileMap contains sometimes up to 200k entries
 	fileMap map[string]record.Record
 	sync.RWMutex
-	length  int
+	length int
 	// pattern is the name and type of the image pattern
 	pattern string
 }
