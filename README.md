@@ -42,11 +42,13 @@ Same as Mock, but generates the images on-the-fly.
 
 ### Magento
 
-Please install [https://github.com/SchumacherFM/mediamock-magento](https://github.com/SchumacherFM/mediamock-magento).
+Magento 1: Please install [https://github.com/SchumacherFM/mediamock-magento](https://github.com/SchumacherFM/mediamock-magento).
 
-This module disables HDD file access in Magento.
+Magento 2: Please install [https://github.com/SchumacherFM/mediamock-magento2](https://github.com/SchumacherFM/mediamock-magento2) todo.
 
-### TYPO3
+These modules disable the HDD file access for reading images. Writing still possible.
+
+### TYPO3 / NEOS
 
 Please help
 

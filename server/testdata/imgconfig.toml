@@ -1,12 +1,12 @@
 [[dirs]]
-# last slash should be there otherwise it will be added automatically
+# name must be the full path to the directory where the final file resides.
 name = "media/captcha/base/"
 width = 250
 height = 120
 
 [[dirs]]
 name = "media/captcha/admin"
-# regex matches the file name
+# regex matches the full file name
 regex = "x[a-z]+"
 width =  350
 height = 120

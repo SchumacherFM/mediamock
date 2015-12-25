@@ -8,6 +8,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+const urlPathSep = "/"
+
 type virtImgRoutes map[string][]virtImgRoute
 
 type virtImgRoute struct {
@@ -41,8 +43,11 @@ func parseVirtualImageConfigFile(path string) (virtImgRoutes, error) {
 			continue
 		}
 
-		if c.Name[len(c.Name)-1:] != "/" {
-			c.Name = c.Name + "/"
+		if c.Name[:1] == urlPathSep { // remove beginning slash
+			c.Name = c.Name[1:]
+		}
+		if c.Name[len(c.Name)-1:] != urlPathSep { // add trailing slash
+			c.Name = c.Name + urlPathSep
 		}
 
 		if _, ok := r[c.Name]; !ok {
@@ -74,6 +79,7 @@ width = 250
 height = 120
 
 [[dirs]]
+# name must be the full path to the directory where the final file resides.
 name = "media/directory1/admin"
 # regex matches the full file name
 regex = "x[a-z]+"
