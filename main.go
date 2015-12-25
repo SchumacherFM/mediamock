@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	Version  = "v0.4.0"
+	Version  = "v0.5.0"
 	fileName = func() (fn string) {
 		var err error
 		if fn, err = os.Hostname(); err == nil {
@@ -38,7 +38,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "p",
-			Value: "happy",
+			Value: "icon",
 			Usage: "Image pattern: happy, warm, rand, happytext, warmtext HTML hex value or icon",
 		},
 		cli.BoolFlag{
@@ -97,7 +97,14 @@ func main() {
 				cli.StringFlag{
 					Name:  "imgconfig",
 					Value: "",
-					Usage: "Path to the configuration file for virtual image generation. `<app> help imgconfig` for more info.",
+					Usage: `Path to the configuration file for virtual image generation.
+	imgconfig defines a TOML configuration file which allows you to specify wilcard
+	image generation. You define a path to a directory and declare the image width and
+	height. All image http requests to that directory will have the same size. Further
+	more you can declare more occurences of the same directory and add a regular
+	expression to serve different width and height within that directory. The image
+	extension will be detected automatically. Type on the CLI:
+	'$ mediamock imgconfig' to see an example of a TOML config.`,
 				},
 				cli.StringFlag{
 					Name:  "urlPrefix",
@@ -115,14 +122,13 @@ func main() {
 					Usage: "IP address or host name",
 				},
 			},
-			{
-				Name: "imgconfig",
-				Usage: `Server reads the csv.gz file and creates the assets/media structure on the fly
-	as a HTTP server. Does not write anything to your hard disk. Open URL / on the server
-	to retrieve a list of all files and folders.`,
-				Action: func(ctx *cli.Context) {
-					println("Bummer ... nothing to see here.")
-				},
+		},
+		{
+			Name:  "imgconfig",
+			Usage: `Prints an example TOML configuration file.`,
+			Action: func(ctx *cli.Context) {
+				println("A TOML configuration file might look like:")
+				println(server.ExampleToml)
 			},
 		},
 	}

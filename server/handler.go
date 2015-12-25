@@ -7,6 +7,8 @@ import (
 	"sort"
 	"sync"
 
+	"path/filepath"
+
 	"github.com/SchumacherFM/mediamock/common"
 	"github.com/SchumacherFM/mediamock/record"
 	"github.com/codegangsta/cli"
@@ -34,7 +36,8 @@ type handle struct {
 	sync.RWMutex
 	length int
 	// pattern is the name and type of the image pattern
-	pattern string
+	pattern       string
+	virtualImages virtImgRoutes
 }
 
 func newHandle(ctx *cli.Context) *handle {
@@ -47,6 +50,13 @@ func newHandle(ctx *cli.Context) *handle {
 	}
 	h.Lock()
 	defer h.Unlock()
+
+	if vif := ctx.String("imgconfig"); vif != "" {
+		var err error
+		if h.virtualImages, err = parseVirtualImageConfigFile(vif); err != nil {
+			common.InfoErr("File %s contains error:\n%s\n", vif, err)
+		}
+	}
 
 	h.fileMap["favicon.ico"] = record.NewRecordFields("happy", "favicon.ico", 16, 16)
 	for _, row := range rec {
@@ -76,6 +86,11 @@ func (h *handle) root(w http.ResponseWriter, r *http.Request) {
 func (h *handle) rootJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(ContentType, ApplicationJSONCharsetUTF8)
 	h.RLock()
+
+	//if err := json.NewEncoder(w).Encode(h.virtualImages); err != nil {
+	//	common.InfoErr("Failed to write JSON encoded virtual image configuration with error: %s\n", err)
+	//}
+
 	for _, rec := range h.fileMap {
 		if err := rec.ToJSON(w); err != nil {
 			common.InfoErr("Failed to write JSON with error: %s\n", err)
@@ -98,6 +113,28 @@ func (h *handle) rootHTML(w http.ResponseWriter, r *http.Request) {
 			<th nowrap>Height px</th>
 			<th>Link</th>
 	</tr></thead><tbody>`)
+
+	for path, vis := range h.virtualImages {
+		for _, vi := range vis {
+			_, err := fmt.Fprintf(w, `<tr>
+			<td>n/a</td>
+			<td>%d</td>
+			<td>%d</td>
+			<td><a href="%s" target="_blank">%s</a> Regex: %s</td>
+		</tr>`,
+				vi.Width,
+				vi.Height,
+				path, path, vi.regex,
+			)
+			if err != nil {
+				common.InfoErr("Failed to write HTML table with error: %s\n", err)
+			}
+
+			if _, err := w.Write(brByte); err != nil {
+				common.InfoErr("Failed to write brByte with error: %s\n", err)
+			}
+		}
+	}
 
 	var pathSlice = make(sort.StringSlice, len(h.fileMap))
 	var i int
@@ -160,6 +197,59 @@ func (h *handle) fileDetails(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *handle) findRecord(w http.ResponseWriter, r *http.Request) (rec record.Record, matched bool) {
+	h.RLock()
+	defer h.RUnlock()
+
+	// 1. try virtual image configuration from TOML
+	// 2. try file map from scanned directory and the generated CSV file
+	// 3. try to find a pattern in the URL which might look like an image size: 420x230
+	// 4. print not found
+
+	var path = r.URL.Path[1:]
+	dir, file := filepath.Split(path)
+
+	if vis, ok := h.virtualImages[dir]; ok {
+		for _, vi := range vis {
+
+			if vi.regex != nil {
+				matched = vi.regex.MatchString(file)
+				if matched {
+					rec = record.NewRecordFields(h.pattern, path, vi.Width, vi.Height)
+					return
+				}
+
+			} else {
+				matched = true
+				rec = record.NewRecordFields(h.pattern, path, vi.Width, vi.Height)
+				return
+			}
+		}
+	}
+
+	rec, matched = h.fileMap[path]
+	if !matched && len(path) > 0 && path[0] != '/' {
+		rec, matched = h.fileMap["/"+path]
+	}
+
+	if false == matched {
+		if false == common.IsImage(path) {
+			http.NotFound(w, r)
+			return
+		}
+
+		if width, height := common.FileSizeFromPath(path); width > 0 && height > 0 {
+			matched = true
+			rec = record.NewRecordFields(h.pattern, path, width, height)
+		} else {
+			http.NotFound(w, r)
+			return
+		}
+	}
+
+	return
+}
+
 func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.URL.Path {
@@ -181,31 +271,11 @@ func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.RLock()
-	defer h.RUnlock()
-
 	var path = r.URL.Path[1:]
 
-	rec, ok := h.fileMap[path]
-	if !ok && len(path) > 0 && path[0] != '/' {
-		rec, ok = h.fileMap["/"+path]
-	}
-
+	rec, ok := h.findRecord(w, r)
 	if !ok {
-
-		if false == common.IsImage(path) {
-			http.NotFound(w, r)
-			return
-		}
-
-		width, height := common.FileSizeFromPath(path)
-
-		if width > 0 && height > 0 {
-			rec = record.NewRecordFields(h.pattern, path, width, height)
-		} else {
-			http.NotFound(w, r)
-			return
-		}
+		return
 	}
 
 	w.Header().Set("Cache-Control", "max-age:290304000, public")

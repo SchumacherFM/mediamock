@@ -1,0 +1,5 @@
+[[dirs]]
+name = "media/captcha/error"
+regex = "x(a-z]+"
+width =  350
+height = 120
