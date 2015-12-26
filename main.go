@@ -8,11 +8,13 @@ import (
 	"github.com/SchumacherFM/mediamock/mock"
 	"github.com/SchumacherFM/mediamock/server"
 	"github.com/codegangsta/cli"
+	"time"
 )
 
 var (
-	Version  = "v0.5.0"
-	fileName = func() (fn string) {
+	BUILD_DATE string
+	VERSION    string // will be set via goxc from outside
+	fileName   = func() (fn string) {
 		var err error
 		if fn, err = os.Hostname(); err == nil {
 			fn = fn + "_"
@@ -25,7 +27,11 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "mediamock"
-	app.Version = Version + " by @SchumacherFM"
+	if VERSION == "" {
+		VERSION = "develop"
+		BUILD_DATE = time.Now().String()
+	}
+	app.Version = VERSION + " by @SchumacherFM (compiled " + BUILD_DATE + ")"
 	app.Usage = `reads your assets/media directory on your server and
                replicates that structure on your development machine.
 
