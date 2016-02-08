@@ -15,7 +15,7 @@ func GetCSVContent(csvFile string) [][]string {
 	if common.IsHTTP(csvFile) {
 		resp, err := http.Get(csvFile)
 		if err != nil {
-			common.UsageAndExit("Failed to download %s with error: %s", csvFile, err)
+			common.UsageAndExit("Failed to download %q with error: %s", csvFile, err)
 		}
 		if resp.StatusCode != http.StatusOK {
 			common.UsageAndExit("Server return non-200 status code: %s\nFailed to download %s", resp.Status, csvFile)
@@ -25,7 +25,7 @@ func GetCSVContent(csvFile string) [][]string {
 		var err error
 		rawRC, err = os.Open(csvFile)
 		if err != nil {
-			common.UsageAndExit("Failed to open %s with error:%s", csvFile, err)
+			common.UsageAndExit("Failed to open %q with error:%s", csvFile, err)
 		}
 	}
 	defer func() {
@@ -40,7 +40,7 @@ func GetCSVContent(csvFile string) [][]string {
 	}
 	defer func() {
 		if err := rz.Close(); err != nil {
-			common.UsageAndExit("Failed to close file %s with error: %s", csvFile, err)
+			common.UsageAndExit("Failed to close file %q with error: %s", csvFile, err)
 		}
 	}()
 
@@ -49,7 +49,7 @@ func GetCSVContent(csvFile string) [][]string {
 
 	records, err := rc.ReadAll()
 	if err != nil {
-		common.UsageAndExit("Failed to read CSV file %s with error: %s", csvFile, err)
+		common.UsageAndExit("Failed to read CSV file %q with error: %s", csvFile, err)
 	}
 
 	return records

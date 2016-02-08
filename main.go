@@ -78,7 +78,7 @@ func main() {
 			Action: server.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "imgconfig",
+					Name:  "img-config",
 					Value: "",
 					Usage: `Path to the configuration file for virtual image generation.
 	imgconfig defines a TOML configuration file which allows you to specify wilcard
@@ -90,7 +90,7 @@ func main() {
 	'$ mediamock imgconfig' to see an example of a TOML config.`,
 				},
 				cli.StringFlag{
-					Name:  "pattern",
+					Name:  "img-pattern",
 					Value: "icon",
 					Usage: "Image pattern: happy, warm, rand, happytext, warmtext, HTML hex value or icon",
 				},
@@ -114,12 +114,12 @@ func main() {
 					Value: "",
 					Usage: `External URL to the base media directory. Apply this URL and mediamock
 	will download the images and save them locally. If the remote image does not exists
-	a mocked image will be generated.`,
+	a mocked image will be generated. (Proxy Feature)`,
 				},
 				cli.StringFlag{
 					Name:  "media-cache",
 					Value: "",
-					Usage: `Local folder where to cache the downloaded images.`,
+					Usage: `Local folder where to cache the downloaded images. (Proxy Feature)`,
 				},
 			},
 		},

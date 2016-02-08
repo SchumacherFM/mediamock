@@ -31,40 +31,42 @@ const (
 )
 
 type handle struct {
+	*proxy
+	sync.RWMutex
 	// fileMap contains sometimes up to 200k entries
 	fileMap map[string]record.Record
-	sync.RWMutex
-	length int
+	length  int
 	// pattern is the name and type of the image pattern
 	pattern       string
 	virtualImages virtImgRoutes
 }
 
 func newHandle(ctx *cli.Context) *handle {
-	csvFile := ctx.String("i")
+	csvFile := ctx.String("csv")
 	rec := record.GetCSVContent(csvFile)
 
 	h := &handle{
+		proxy:   newProxy(ctx),
 		fileMap: make(map[string]record.Record),
-		pattern: ctx.GlobalString("p"),
+		pattern: ctx.String("img-pattern"),
 	}
 	h.Lock()
 	defer h.Unlock()
 
-	if vif := ctx.String("imgconfig"); vif != "" {
+	if vif := ctx.String("img-config"); vif != "" {
 		var err error
 		if h.virtualImages, err = parseVirtualImageConfigFile(vif); err != nil {
 			common.InfoErr("File %s contains error:\n%s\n", vif, err)
 		}
 	}
 
-	h.fileMap["favicon.ico"] = record.NewRecordFields("happy", "favicon.ico", 16, 16)
+	h.fileMap["favicon.ico"] = record.NewRecordFields("icon", "favicon.ico", 16, 16)
 	for _, row := range rec {
 		rec, err := record.NewRecord(h.pattern, row...)
 		if err != nil {
 			common.InfoErr("File %s contains error: %s\n", csvFile, err)
 		}
-		rec.Path = ctx.String("urlPrefix") + rec.Path
+		rec.Path = ctx.String("url-prefix") + rec.Path
 		h.fileMap[rec.Path] = rec
 	}
 	h.length = len(rec)
@@ -201,10 +203,11 @@ func (h *handle) findRecord(w http.ResponseWriter, r *http.Request) (rec record.
 	h.RLock()
 	defer h.RUnlock()
 
-	// 1. try virtual image configuration from TOML
-	// 2. try file map from scanned directory and the generated CSV file
-	// 3. try to find a pattern in the URL which might look like an image size: 420x230
-	// 4. print not found
+	// 1. try remote server via media-url
+	// 2. try virtual image configuration from TOML
+	// 3. try file map from scanned directory and the generated CSV file
+	// 4. try to find a pattern in the URL which might look like an image size: 420x230
+	// 5. print not found
 
 	var path = r.URL.Path[1:]
 	dir, file := filepath.Split(path)
@@ -271,18 +274,27 @@ func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var path = r.URL.Path[1:]
+	if h.proxy != nil {
+		if ok := h.pipe(w, r); ok {
+			return
+		}
+	}
 
-	rec, ok := h.findRecord(w, r)
-	if !ok {
+	if rec, ok := h.findRecord(w, r); ok {
+		addHeaders(rec.FileExt(), rec.ModTime.Format(http.TimeFormat), w)
+		rec.CreateContent(r.URL.Path[1:], w)
 		return
 	}
 
+	http.NotFound(w, r)
+}
+
+func addHeaders(fileExt, lastModified string, w http.ResponseWriter) {
 	w.Header().Set("Cache-Control", "max-age:290304000, public")
-	w.Header().Set("Last-Modified", rec.ModTime.Format(http.TimeFormat))
+	w.Header().Set("Last-Modified", lastModified)
 	w.Header().Set("Expires", cacheUntil)
 
-	switch rec.FileExt() {
+	switch fileExt {
 	case ".gif":
 		w.Header().Set(ContentType, "image/gif")
 	case ".png":
@@ -301,5 +313,4 @@ func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(ContentType, TextHTML)
 	}
 
-	rec.CreateContent(path, w)
 }
