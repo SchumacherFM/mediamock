@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
+	"time"
+
 	"github.com/SchumacherFM/mediamock/analyze"
 	"github.com/SchumacherFM/mediamock/common"
-	"github.com/SchumacherFM/mediamock/mock"
 	"github.com/SchumacherFM/mediamock/server"
 	"github.com/codegangsta/cli"
-	"time"
 )
 
 var (
@@ -33,23 +33,19 @@ func main() {
 	}
 	app.Version = VERSION + " by @SchumacherFM (compiled " + BUILD_DATE + ")"
 	app.Usage = `reads your assets/media directory on your server and
-               replicates that structure on your development machine.
+               replicates it as a virtual structure on your development machine.
+               On top can act as a proxy.
 
-               $ mediamock help analyze|mock|server for more options!
+               $ mediamock help analyze|server|imgconfig for more options!
                `
 	app.Action = func(c *cli.Context) {
 		cli.ShowAppHelp(c)
 	}
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "p",
-			Value: "icon",
-			Usage: "Image pattern: happy, warm, rand, happytext, warmtext HTML hex value or icon",
-		},
 		cli.BoolFlag{
 			Name:  "q",
-			Usage: "Quiet aka no output",
+			Usage: "No output",
 		},
 	}
 
@@ -74,25 +70,6 @@ func main() {
 			},
 		},
 		{
-			Name:      "mock",
-			ShortName: "m",
-			Usage: `Mock reads the csv.gz file and recreates the files and folders. If a file represents
-	an image, it will be created with a tiny file size and correct width x height.`,
-			Action: mock.ActionCLI,
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "i",
-					Value: "",
-					Usage: "Read csv.gz from this input file or input URL.",
-				},
-				cli.StringFlag{
-					Name:  "d",
-					Value: ".",
-					Usage: "Create structure in this directory.",
-				},
-			},
-		},
-		{
 			Name:      "server",
 			ShortName: "s",
 			Usage: `Server reads the csv.gz file and creates the assets/media structure on the fly
@@ -113,19 +90,36 @@ func main() {
 	'$ mediamock imgconfig' to see an example of a TOML config.`,
 				},
 				cli.StringFlag{
-					Name:  "urlPrefix",
-					Value: "",
-					Usage: "Prefix in the URL path",
+					Name:  "pattern",
+					Value: "icon",
+					Usage: "Image pattern: happy, warm, rand, happytext, warmtext, HTML hex value or icon",
 				},
 				cli.StringFlag{
-					Name:  "i",
+					Name:  "url-prefix",
 					Value: "",
-					Usage: "Read csv.gz from this input file or input URL.",
+					Usage: "Prefix in the URL path of the csv.gz file.",
+				},
+				cli.StringFlag{
+					Name:  "csv",
+					Value: "",
+					Usage: "Source of csv.gz (file or URL)",
 				},
 				cli.StringFlag{
 					Name:  "host",
 					Value: "127.0.0.1:4711",
 					Usage: "IP address or host name",
+				},
+				cli.StringFlag{
+					Name:  "media-url",
+					Value: "",
+					Usage: `External URL to the base media directory. Apply this URL and mediamock
+	will download the images and save them locally. If the remote image does not exists
+	a mocked image will be generated.`,
+				},
+				cli.StringFlag{
+					Name:  "media-cache",
+					Value: "",
+					Usage: `Local folder where to cache the downloaded images.`,
 				},
 			},
 		},
