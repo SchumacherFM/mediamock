@@ -55,3 +55,6 @@
 [submodule "vendor/github.com/MichaelTJones/walk"]
 	path = vendor/github.com/MichaelTJones/walk
 	url = https://github.com/MichaelTJones/walk.git
+[submodule "vendor/github.com/shirou/gopsutil"]
+	path = vendor/github.com/shirou/gopsutil
+	url = git@github.com:shirou/gopsutil.git
