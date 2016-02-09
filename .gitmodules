@@ -58,3 +58,12 @@
 [submodule "vendor/github.com/shirou/gopsutil"]
 	path = vendor/github.com/shirou/gopsutil
 	url = git@github.com:shirou/gopsutil.git
+[submodule "vendor/github.com/StackExchange/wmi"]
+	path = vendor/github.com/StackExchange/wmi
+	url = https://github.com/StackExchange/wmi.git
+[submodule "vendor/github.com/shirou/w32"]
+	path = vendor/github.com/shirou/w32
+	url = https://github.com/shirou/w32.git
+[submodule "vendor/github.com/go-ole/go-ole"]
+	path = vendor/github.com/go-ole/go-ole
+	url = https://github.com/go-ole/go-ole.git
