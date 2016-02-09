@@ -92,7 +92,7 @@ func main() {
 				cli.StringFlag{
 					Name:  "img-pattern",
 					Value: "icon",
-					Usage: "Image pattern: happy, warm, rand, happytext, warmtext, HTML hex value or icon",
+					Usage: "Image pattern: happy, warm, rand, happytext, warmtext, a HTML hex value or icon",
 				},
 				cli.StringFlag{
 					Name:  "url-prefix",

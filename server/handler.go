@@ -43,7 +43,10 @@ type handle struct {
 
 func newHandle(ctx *cli.Context) *handle {
 	csvFile := ctx.String("csv")
-	rec := record.GetCSVContent(csvFile)
+	var rec [][]string
+	if csvFile != "" {
+		rec = record.GetCSVContent(csvFile)
+	}
 
 	h := &handle{
 		proxy:   newProxy(ctx),
@@ -237,17 +240,14 @@ func (h *handle) findRecord(w http.ResponseWriter, r *http.Request) (rec record.
 
 	if false == matched {
 		if false == common.IsImage(path) {
-			http.NotFound(w, r)
 			return
 		}
 
 		if width, height := common.FileSizeFromPath(path); width > 0 && height > 0 {
 			matched = true
 			rec = record.NewRecordFields(h.pattern, path, width, height)
-		} else {
-			http.NotFound(w, r)
-			return
 		}
+		return
 	}
 
 	return
@@ -285,7 +285,6 @@ func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 		rec.CreateContent(r.URL.Path[1:], w)
 		return
 	}
-
 	http.NotFound(w, r)
 }
 
