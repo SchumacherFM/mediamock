@@ -7,11 +7,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/SchumacherFM/mediamock/common"
 	"github.com/codegangsta/cli"
-	"io/ioutil"
 )
 
 const maxHttpDownloadSize = 1024 * 1e3 * 6 // 6 MB
@@ -19,8 +17,6 @@ const maxHttpDownloadSize = 1024 * 1e3 * 6 // 6 MB
 type proxy struct {
 	url      string
 	cacheDir string
-	mu       sync.Mutex
-	cached   map[string]bool
 }
 
 func newProxy(ctx *cli.Context) *proxy {
@@ -28,57 +24,58 @@ func newProxy(ctx *cli.Context) *proxy {
 	p := &proxy{
 		url:      ctx.String("media-url"),
 		cacheDir: ctx.String("media-cache"),
-		cached:   make(map[string]bool),
 	}
 
 	if p.url == "" {
-		common.InfoErr("Image proxying disabled. Media URL is empty.")
+		common.Info("Image proxying disabled. Media URL is empty.\n")
 		return nil
 	}
 
 	if p.cacheDir == "" {
-		h := fnv.New64a()
+		h := fnv.New32a()
 		if _, err := h.Write([]byte(p.url)); err != nil {
 			panic(err)
 		}
-		p.cacheDir = fmt.Sprintf("%smediamock_proxy_%d%s", common.TempDir(), h.Sum64(), string(os.PathSeparator))
+		p.cacheDir = fmt.Sprintf("%smediamock_proxy_%d%s", common.TempDir(), h.Sum32(), string(os.PathSeparator))
 	}
-	common.InfoErr("Proxy started from URL %q and cache directory %q", p.url, p.cacheDir)
+	common.Info("Proxy started with remote URL %q and cache directory %q\n", p.url, p.cacheDir)
 
 	return p
 }
 
-// pipe returns false == entry not found on server
-func (p *proxy) pipe(w http.ResponseWriter, r *http.Request) bool {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
+func (p *proxy) serveExistingFile(w http.ResponseWriter, r *http.Request) bool {
 	reqFile := r.URL.Path[1:]
+	cachedFile := p.cacheDir + reqFile
 
-	if _, ok := p.cached[reqFile]; ok {
+	if common.FileExists(cachedFile) {
 
-		f, err := os.Open(p.cacheDir + reqFile)
+		f, err := os.Open(cachedFile)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return true
+			if false == os.IsNotExist(err) {
+				common.InfoErr("Cannot open %q because %s\n", cachedFile, err.Error())
+			}
+			return false
 		}
 		defer func() {
 			if err := f.Close(); err != nil {
-				common.InfoErr("Failed to close file %q with Error %s", reqFile,err)
+				common.InfoErr("Failed to close file %q with Error %s\n", reqFile, err)
 			}
 		}()
 
 		addHeaders(filepath.Ext(reqFile), cacheUntil, w)
 		if _, err := io.Copy(w, f); err != nil {
-			http.Error(w, fmt.Sprintf("Error: %s with file %q", err, reqFile), http.StatusInternalServerError)
+			common.InfoErr("Error copying file content to http response: %s with file %q", err, reqFile)
+			return false
 		}
 		return true
 	}
+	return false
+}
 
+func (p *proxy) serveAndSaveRemoteFile(w http.ResponseWriter, r *http.Request) bool {
+	reqFile := r.URL.Path[1:]
+	cachedFile := p.cacheDir + reqFile
 	remoteFile := p.url + reqFile
-	if false == common.IsHTTP(remoteFile) {
-		return false
-	}
 
 	resp, err := http.Get(remoteFile)
 	defer func() {
@@ -90,33 +87,54 @@ func (p *proxy) pipe(w http.ResponseWriter, r *http.Request) bool {
 	}()
 
 	if err != nil {
-		common.InfoErr("Failed to download %q with error: %s", remoteFile, err)
+		common.InfoErr("Failed to download %q with error: %s\n", remoteFile, err)
 		return false
 	}
 	if resp.StatusCode != http.StatusOK {
-		common.InfoErr("Failed to download %q with Code: %s", remoteFile, http.StatusText(resp.StatusCode))
+		common.InfoErr("Failed to download %q with Code: %q\n", remoteFile, http.StatusText(resp.StatusCode))
 		return false
 	}
 
-	fileData, err := ioutil.ReadAll(io.LimitReader(resp.Body, maxHttpDownloadSize))
+	if dcf := filepath.Dir(cachedFile); false == common.IsDir(dcf) {
+		if err := os.MkdirAll(dcf, 0755); err != nil {
+			common.InfoErr("Failed to create cache folder %q with Code: %s\n", dcf, err)
+			return false
+		}
+	}
 
-	fw, err := os.OpenFile(p.cacheDir+reqFile, os.O_WRONLY, 0600)
-	if err !=nil {
-		common.InfoErr("Failed to open file %q  for URL %q with Error: %s",p.cacheDir+reqFile, remoteFile, err)
+	fw, err := os.OpenFile(cachedFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		common.InfoErr("Failed to open write file %q for URL %q with Error: %s\n", cachedFile, remoteFile, err)
 		return false
 	}
 	defer func() {
 		if err := fw.Close(); err != nil {
-			common.InfoErr("Failed to close file %q with Error %s", reqFile,err)
+			common.InfoErr("Failed to close write file %q from URL %q with Error %s\n", cachedFile, remoteFile, err)
 		}
 	}()
 
 	addHeaders(filepath.Ext(reqFile), cacheUntil, w)
 	mw := io.MultiWriter(w, fw)
-	if _, err := mw.Write(fileData); err != nil {
-		common.InfoErr("Failed to write to http response and/or file to disk: %q with error: %s", remoteFile, err)
+	if _, err := io.Copy(mw, io.LimitReader(resp.Body, maxHttpDownloadSize)); err != nil {
+		common.InfoErr("Failed to write to http response and/or file to disk: %q with error: %s. Max Size: %d KBytes\n", remoteFile, err, maxHttpDownloadSize/1024)
 		return false
 	}
 
 	return true
+}
+
+// pipe returns false == entry not found on server
+func (p *proxy) serveProxy(w http.ResponseWriter, r *http.Request) bool {
+
+	remoteFile := p.url + r.URL.Path[1:]
+	if false == common.IsHTTP(remoteFile) {
+		return false
+	}
+
+	if p.serveExistingFile(w, r) {
+		return true
+	}
+
+	return p.serveAndSaveRemoteFile(w, r)
+
 }

@@ -275,7 +275,7 @@ func (h *handle) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.proxy != nil {
-		if ok := h.pipe(w, r); ok {
+		if ok := h.serveProxy(w, r); ok {
 			return
 		}
 	}

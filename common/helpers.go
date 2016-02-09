@@ -29,6 +29,12 @@ func InfoErr(msg string, args ...interface{}) {
 	}
 }
 
+func Info(msg string, args ...interface{}) {
+	if _, err := fmt.Fprintf(os.Stderr, ansi.Color(msg, "green"), args...); err != nil {
+		panic(err)
+	}
+}
+
 var fileSizePattern = regexp.MustCompile("([0-9]+)x([0-9]+)?")
 var ps = string(os.PathSeparator)
 
@@ -80,7 +86,13 @@ func IsImage(path string) (ok bool) {
 // IsDir returns true if path is a directory
 func IsDir(path string) bool {
 	fileInfo, err := os.Stat(path)
-	return fileInfo.IsDir() && err == nil
+	return fileInfo != nil && fileInfo.IsDir() && err == nil
+}
+
+// FileExists returns true if file exists
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
 }
 
 // IsHTTP checks if path starts with http or https
