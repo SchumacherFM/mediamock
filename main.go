@@ -54,7 +54,7 @@ func main() {
 			Name:      "analyze",
 			ShortName: "a",
 			Usage: `Analyze the directory structure on you production server and write into a
-		csv.gz file.`,
+                csv.gz file.`,
 			Action: analyze.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -73,21 +73,23 @@ func main() {
 			Name:      "server",
 			ShortName: "s",
 			Usage: `Server reads the csv.gz file and creates the assets/media structure on the fly
-	as a HTTP server. Does not write anything to your hard disk. Open URL / on the server
-	to retrieve a list of all files and folders.`,
+                 as a HTTP server. Does not write anything to your hard disk. Open URL / on the
+                 server to retrieve a list of all files and folders.`,
 			Action: server.ActionCLI,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "img-config",
 					Value: "",
 					Usage: `Path to the configuration file for virtual image generation.
-	imgconfig defines a TOML configuration file which allows you to specify wilcard
-	image generation. You define a path to a directory and declare the image width and
-	height. All image http requests to that directory will have the same size. Further
-	more you can declare more occurences of the same directory and add a regular
-	expression to serve different width and height within that directory. The image
-	extension will be detected automatically. Type on the CLI:
-	'$ mediamock imgconfig' to see an example of a TOML config.`,
+
+                 img-config defines a TOML configuration file which allows you to specify wilcard
+                 image generation. You define a path to a directory and declare the image width
+                 and height. All image http requests to that directory will have the same size.
+                 Further more you can declare more occurences of the same directory and add a
+                 regular expression to serve different width and height within that directory.
+                 The image extension will be detected automatically. Type on the CLI:
+                 '$ mediamock imgconfig' to see an example of a TOML config.
+`,
 				},
 				cli.StringFlag{
 					Name:  "img-pattern",
@@ -112,9 +114,11 @@ func main() {
 				cli.StringFlag{
 					Name:  "media-url",
 					Value: "",
-					Usage: `External URL to the base media directory. Apply this URL and mediamock
-	will download the images and save them locally. If the remote image does not exists
-	a mocked image will be generated. (Proxy Feature)`,
+					Usage: `External URL to the base media directory.
+
+                Apply this URL and mediamock will download the images and save them locally. If
+                the remote image does not exists a mocked image will be generated. (Proxy Feature)
+`,
 				},
 				cli.StringFlag{
 					Name:  "media-cache",
