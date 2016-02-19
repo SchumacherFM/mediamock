@@ -1,6 +1,3 @@
-[submodule "vendor/github.com/olekukonko/ts"]
-	path = vendor/github.com/olekukonko/ts
-	url = https://github.com/olekukonko/ts.git
 [submodule "vendor/github.com/codegangsta/cli"]
 	path = vendor/github.com/codegangsta/cli
 	url = https://github.com/codegangsta/cli.git
@@ -34,39 +31,12 @@
 [submodule "vendor/golang.org/x/image"]
 	path = vendor/golang.org/x/image
 	url = https://github.com/golang/image.git
-[submodule "vendor/github.com/go-gl/gl"]
-	path = vendor/github.com/go-gl/gl
-	url = https://github.com/go-gl/gl.git
-[submodule "vendor/github.com/jung-kurt/gofpdf"]
-	path = vendor/github.com/jung-kurt/gofpdf
-	url = https://github.com/jung-kurt/gofpdf.git
-[submodule "vendor/github.com/llgcode/ps"]
-	path = vendor/github.com/llgcode/ps
-	url = https://github.com/llgcode/ps.git
-[submodule "vendor/github.com/gorilla/handlers"]
-	path = vendor/github.com/gorilla/handlers
-	url = https://github.com/gorilla/handlers.git
-[submodule "vendor/github.com/boombuler/barcode"]
-	path = vendor/github.com/boombuler/barcode
-	url = https://github.com/boombuler/barcode.git
-[submodule "vendor/github.com/go-gl/glfw"]
-	path = vendor/github.com/go-gl/glfw
-	url = https://github.com/go-gl/glfw.git
 [submodule "vendor/github.com/MichaelTJones/walk"]
 	path = vendor/github.com/MichaelTJones/walk
 	url = https://github.com/MichaelTJones/walk.git
 [submodule "vendor/github.com/shirou/gopsutil"]
 	path = vendor/github.com/shirou/gopsutil
 	url = git@github.com:shirou/gopsutil.git
-[submodule "vendor/github.com/StackExchange/wmi"]
-	path = vendor/github.com/StackExchange/wmi
-	url = https://github.com/StackExchange/wmi.git
-[submodule "vendor/github.com/shirou/w32"]
-	path = vendor/github.com/shirou/w32
-	url = https://github.com/shirou/w32.git
-[submodule "vendor/github.com/go-ole/go-ole"]
-	path = vendor/github.com/go-ole/go-ole
-	url = https://github.com/go-ole/go-ole.git
 [submodule "vendor/github.com/BurntSushi/toml"]
 	path = vendor/github.com/BurntSushi/toml
 	url = https://github.com/BurntSushi/toml.git
@@ -79,3 +49,9 @@
 [submodule "vendor/golang.org/x/net"]
 	path = vendor/golang.org/x/net
 	url = https://github.com/golang/net.git
+[submodule "vendor/github.com/golang/protobuf"]
+	path = vendor/github.com/golang/protobuf
+	url = https://github.com/golang/protobuf
+[submodule "vendor/gopkg.in/go-playground/validator.v8"]
+	path = vendor/gopkg.in/go-playground/validator.v8
+	url = https://gopkg.in/go-playground/validator.v8
